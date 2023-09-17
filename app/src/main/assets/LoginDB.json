@@ -1,0 +1,18 @@
+[
+  {
+    "userID": 1,
+    "stuNum": "2216110017",
+    "stuName": "유호정",
+    "department": "IT융합제어과",
+    "email": "i19162013@gmail.com",
+    "phone": "01050912538"
+  },
+  {
+    "userID": 2,
+    "stuNum": "2216110007",
+    "stuName": "김지환",
+    "department": "IT융합제어과",
+    "email": "2216110007@office.kopo.ac.kr",
+    "phone": ""
+  }
+]

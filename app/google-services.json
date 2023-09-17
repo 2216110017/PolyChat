@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "706129105744",
+    "project_id": "polychat-1f78d",
+    "storage_bucket": "polychat-1f78d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:706129105744:android:b98f645a98c553f6ff9255",
+        "android_client_info": {
+          "package_name": "com.example.polychat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0BQWJU3xdljuS6eN9oRcAzfgizfOdCgY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
