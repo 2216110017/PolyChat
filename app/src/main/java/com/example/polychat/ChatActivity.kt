@@ -1,99 +1,114 @@
 package com.example.polychat
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.polychat.databinding.ActivityChatBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var receiverName: String
     private lateinit var receiverUid: String
-
-    //바인딩 객체
     private lateinit var binding: ActivityChatBinding
-
-    lateinit var mAuth: FirebaseAuth //인증 객체
-    lateinit var mDbRef: DatabaseReference//DB 객체
-
-    private lateinit var receiverRoom: String //받는 대화방
-    private lateinit var senderRoom: String //보낸 대화방
-
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mDbRef: DatabaseReference
+    private lateinit var receiverRoom: String
+    private lateinit var senderRoom: String
+    private lateinit var loggedInUser: User
     private lateinit var messageList: ArrayList<Message>
+    private var isUserInitialized = false // loggedInUser가 초기화되었는지 확인하는 변수
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //초기화
-        messageList = ArrayList()
-        val messageAdapter: MessageAdapter = MessageAdapter(this, messageList)
+        // 로그인된 사용자 정보 가져오기
+        lifecycleScope.launch {
+            val stuName = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("stuName")] ?: ""
+            }.first()
+            val stuNum = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("stuNum")] ?: ""
+            }.first()
+            val department = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("department")] ?: ""
+            }.first()
+            val email = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("email")] ?: ""
+            }.first()
+            val phone = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("phone")] ?: ""
+            }.first()
+            val uId =
+                dataStore.data.map { preferences -> preferences[stringPreferencesKey("uId")] ?: "" }
+                    .first()
 
-        //RecyclerView
+            loggedInUser = User(stuName, stuNum, department, email, phone, uId)
+            isUserInitialized = true
+        }
+
+        messageList = ArrayList()
+
+//        val messageAdapter: MessageAdapter = MessageAdapter(this, messageList)
+        val messageAdapter = MessageAdapter(this, messageList, loggedInUser.uId)
+
+
         binding.chatRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.chatRecyclerView.adapter = messageAdapter
 
-        //넘어온 데이터 변수에 담기
         receiverName = intent.getStringExtra("name").toString()
         receiverUid = intent.getStringExtra("uId").toString()
 
-        mAuth = FirebaseAuth.getInstance()
         mDbRef = FirebaseDatabase.getInstance().reference
 
-        //접속자 uId
-        val senderUid = mAuth.currentUser?.uid
+        val senderUid = loggedInUser.uId
 
-        //보낸이방
         senderRoom = receiverUid + senderUid
-
-        //받는이방
         receiverRoom = senderUid + receiverUid
 
-        //액션바에 상대방 이름 보여주기
         supportActionBar?.title = receiverName
 
         //메시지 전송 버튼 이벤트
         binding.sendBtn.setOnClickListener {
-
+            if (!isUserInitialized) {
+                // loggedInUser가 초기화되지 않았을 경우 사용자에게 알림 표시
+                Toast.makeText(this, "사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val message = binding.messageEdit.text.toString()
-            val messageObject = Message(message, senderUid)
+            val messageObject = Message(message, loggedInUser.uId)
 
-            //데이터 저장
             mDbRef.child("chats").child(senderRoom).child("messages").push()
                 .setValue(messageObject).addOnSuccessListener {
-                    //저장 성공하면
                     mDbRef.child("chats").child(receiverRoom).child("messages").push()
                         .setValue(messageObject)
-
                 }
-            //입력값 초기화
             binding.messageEdit.setText("")
         }
 
-        //메시지 가져오기
         mDbRef.child("chats").child(senderRoom).child("messages")
             .addValueEventListener(object: ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     messageList.clear()
 
                     for(postSnapshat in snapshot.children){
-
                         val message = postSnapshat.getValue(Message::class.java)
                         messageList.add(message!!)
                     }
-                    //적용
                     messageAdapter.notifyDataSetChanged()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-
+                    // Handle error
                 }
             })
     }

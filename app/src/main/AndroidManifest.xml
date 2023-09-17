@@ -16,9 +16,6 @@
             android:name=".ChatActivity"
             android:exported="false" />
         <activity
-            android:name=".SignUpActivity"
-            android:exported="false" />
-        <activity
             android:name=".LogInActivity"
             android:exported="true">
             <intent-filter>

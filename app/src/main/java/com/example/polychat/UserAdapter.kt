@@ -30,7 +30,7 @@ class UserAdapter(private val context: Context, private val userList: ArrayList<
         val currentUser = userList[position]
 
         //화면에 데이터 보여주기
-        holder.nameText.text = currentUser.name
+        holder.nameText.text = currentUser.stuName
 
         //아이템 클릭 이벤트
         holder.itemView.setOnClickListener {
@@ -38,7 +38,7 @@ class UserAdapter(private val context: Context, private val userList: ArrayList<
             val intent  = Intent(context, ChatActivity::class.java)
 
             //넘길 데이터
-            intent.putExtra("name", currentUser.name)
+            intent.putExtra("stuName", currentUser.stuName)
             intent.putExtra("uId", currentUser.uId)
 
             context.startActivity(intent)

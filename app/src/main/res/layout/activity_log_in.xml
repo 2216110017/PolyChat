@@ -19,24 +19,24 @@
         android:src="@drawable/chat" />
 
     <EditText
-        android:id="@+id/email_edit"
+        android:id="@+id/stuNameEdit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:hint="이메일"
+        android:hint="이름"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/logo_image"/>
 
     <EditText
-        android:id="@+id/password_edit"
+        android:id="@+id/stuNumEdit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="비밀번호"
+        android:hint="학번"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/email_edit" />
+        app:layout_constraintTop_toBottomOf="@+id/stuNameEdit" />
 
     <CheckBox
         android:id="@+id/checkBoxRememberLogin"
@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/password_edit"
+        app:layout_constraintTop_toBottomOf="@+id/stuNumEdit"
         android:text="로그인 유지" />
 
     <Button
@@ -56,15 +56,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/checkBoxRememberLogin" />
-
-    <Button
-        android:id="@+id/signUpBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:text="회원가입"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loginBtn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
