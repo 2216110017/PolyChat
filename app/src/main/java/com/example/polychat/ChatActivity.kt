@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 class ChatActivity : AppCompatActivity() {
 
@@ -85,7 +86,10 @@ class ChatActivity : AppCompatActivity() {
             }
             val message = binding.messageEdit.text.toString()
 //            val messageObject = Message(message, loggedInUser.uId)
-            val currentTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(System.currentTimeMillis())
+            val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
+                timeZone = TimeZone.getTimeZone("Asia/Seoul")
+            }.format(System.currentTimeMillis())
+
             val messageObject = Message(message, loggedInUser.uId, currentTime)
 
             mDbRef.child("chats").child(senderRoom).child("messages").push()
