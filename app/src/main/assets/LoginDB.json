@@ -14,5 +14,21 @@
     "department": "IT융합제어과",
     "email": "2216110007@office.kopo.ac.kr",
     "phone": ""
+  },
+  {
+    "userID": 3,
+    "stuNum": "2216110000",
+    "stuName": "테스트",
+    "department": "전기과",
+    "email": "2216110000@office.kopo.ac.kr",
+    "phone": "000-1111-2222"
+  },
+  {
+    "userID": 4,
+    "stuNum": "2216110001",
+    "stuName": "전기과",
+    "department": "전기과",
+    "email": "2216110001@office.kopo.ac.kr",
+    "phone": "000-2222-3333"
   }
 ]

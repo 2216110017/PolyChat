@@ -25,6 +25,8 @@ class PostEditActivity : AppCompatActivity() {
     private lateinit var databaseReference: DatabaseReference
 
     private var postUID: String? = null
+    private var department: String = ""
+
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -36,27 +38,24 @@ class PostEditActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_post_edit)
 
-        // Intent에서 게시글 정보와 사용자의 UID를 가져옵니다.
+        // Intent에서 게시글 정보와 사용자 정보 가져오기
         postUID = intent.getStringExtra("post_uid")
-        val postTitle = intent.getStringExtra("post_title")
-        val postContent = intent.getStringExtra("post_content")
-        val userUID = intent.getStringExtra("user_uid")
+//        postTitle = intent.getStringExtra("post_title")
+//        postContent = intent.getStringExtra("post_content")
+//        userUID = intent.getStringExtra("user_uid")
+        department = intent.getStringExtra("department") ?: ""
+
 
         titleEditText = findViewById(R.id.title_edittext)
         contentEditText = findViewById(R.id.content_edittext)
         noticeCheckbox = findViewById(R.id.notice_checkbox)
         databaseReference = FirebaseDatabase.getInstance().getReference("post")
 
-        // PostDetailActivity에서 전달된 데이터로 필드를 채웁니다.
+        // PostDetailActivity에서 전달된 데이터로 필드 채움
         titleEditText.setText(intent.getStringExtra("post_title"))
         contentEditText.setText(intent.getStringExtra("post_content"))
         noticeCheckbox.isChecked = intent.getBooleanExtra("notice", false)
 
-//        findViewById<View>(R.id.edit_post_button).apply {
-//            setOnClickListener {
-//                updatePost()
-//            }
-//        }
 
         findViewById<View>(R.id.edit_post_button).setOnClickListener {
                 updatePost()
@@ -88,7 +87,7 @@ class PostEditActivity : AppCompatActivity() {
         val content = contentEditText.text.toString()
         val noticechk = if (noticeCheckbox.isChecked) 1 else 0
 
-        val post = Post(title, content, uid = postUID!!, noticechk = noticechk)
+        val post = Post(title, content, department = department, uid = postUID!!, noticechk = noticechk)
         databaseReference.child(postUID!!).setValue(post).addOnCompleteListener {
             if (it.isSuccessful) {
                 Toast.makeText(this, "수정이 완료되었습니다.", Toast.LENGTH_SHORT).show()

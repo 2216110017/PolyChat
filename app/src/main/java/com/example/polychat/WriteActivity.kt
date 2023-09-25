@@ -35,9 +35,9 @@ class WriteActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_write)
 
-//        val stuName = intent.getStringExtra("stuName")
-//        val department = intent.getStringExtra("department")
-//        val stuNum = intent.getStringExtra("stuNum")
+        val stuName = intent.getStringExtra("stuName")
+        val department = intent.getStringExtra("department") ?: ""
+        val stuNum = intent.getStringExtra("stuNum")
         val uId = intent.getStringExtra("uId")
         Log.d("WriteActivity", "BoardActivity에서 받은 uId값 : $uId")
 
@@ -56,7 +56,7 @@ class WriteActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val post = Post(title, content, uid = uId, noticechk = noticechk)
+            val post = Post(title, content, uid = uId, noticechk = noticechk, department = department)
             val postKey = databaseReference.push().key  // 고유한 키 생성
             if (postKey != null) {
                 databaseReference.child(postKey).setValue(post)
