@@ -39,6 +39,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+//        // intent에서 사용자 세부정보 가져오기
+//        val stuName = intent.getStringExtra("stuName")
+//        val department = intent.getStringExtra("department")
+//        val stuNum = intent.getStringExtra("stuNum")
+//        val uId = intent.getStringExtra("uId")
+//
         // 로그인된 사용자 정보 가져오기
         lifecycleScope.launch {
             val stuName = dataStore.data.map { preferences ->

@@ -56,4 +56,5 @@ class PostAdapter(private val context: Context, private val dataSource: List<Pos
         }
         return view
     }
+
 }
