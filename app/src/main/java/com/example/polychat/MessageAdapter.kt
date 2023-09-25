@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class MessageAdapter(private val context: Context, private val messageList: ArrayList<Message>, private val loggedInUserId: String):
     RecyclerView.Adapter<RecyclerView.ViewHolder>(){
@@ -24,16 +26,20 @@ class MessageAdapter(private val context: Context, private val messageList: Arra
         }
     }
 
+
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         //현재 메시지
         val currentMessage = messageList[position]
+        val dateFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
         when (holder) {
             is SendViewHolder -> {
                 holder.sendMessage.text = currentMessage.message
+                holder.sendTime.text = dateFormat.format(currentMessage.sentTime)
             }
             is ReceiveViewHolder -> {
                 holder.receiveMessage.text = currentMessage.message
+                holder.receiveTime.text = dateFormat.format(currentMessage.sentTime)
             }
         }
     }
@@ -57,10 +63,14 @@ class MessageAdapter(private val context: Context, private val messageList: Arra
     //보낸 쪽
     class SendViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
         val sendMessage: TextView = itemView.findViewById(R.id.send_message_text)
+        val sendTime: TextView = itemView.findViewById(R.id.send_message_time)
     }
 
     //받는 쪽
     class ReceiveViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
         val receiveMessage: TextView = itemView.findViewById(R.id.receive_message_text)
+        val receiveTime: TextView = itemView.findViewById(R.id.receive_message_time)
     }
+
 }
+
