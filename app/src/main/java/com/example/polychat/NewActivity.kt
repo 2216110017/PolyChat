@@ -2,11 +2,23 @@ package com.example.polychat
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.lifecycleScope
 import com.example.polychat.databinding.ActivityNewBinding
+import kotlinx.coroutines.launch
 
 class NewActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNewBinding
+
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            finish()            // 뒤로가기 시 실행할 코드
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,5 +53,28 @@ class NewActivity : AppCompatActivity() {
             intent.putExtra("loginUID", loginUID)
             startActivity(intent)
         }
+
+        this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
+    }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == R.id.log_out){
+            // 로그아웃 로직 처리
+            lifecycleScope.launch {
+                dataStore.edit { preferences ->
+                    preferences.clear()
+                }
+            }
+
+            val intent = Intent(this@NewActivity, LogInActivity::class.java)
+            startActivity(intent)
+            finish()
+            return true
+        }
+        return true
     }
 }

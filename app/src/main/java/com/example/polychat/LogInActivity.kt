@@ -3,6 +3,7 @@ package com.example.polychat
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.lifecycleScope
@@ -31,6 +32,7 @@ class LogInActivity : AppCompatActivity() {
 
         // 로그인 버튼 이벤트
         binding.loginBtn.setOnClickListener {
+
             val stuName = binding.stuNameEdit.text.toString()
             val stuNum = binding.stuNumEdit.text.toString()
 
@@ -87,6 +89,7 @@ class LogInActivity : AppCompatActivity() {
             finish()
         } else {
             // 로그인 실패 처리
+            Toast.makeText(this, "로그인에 실패하였습니다. 이름과 학번이 올바르게 입력되었는지 확인해주세요", Toast.LENGTH_SHORT).show()
         }
     }
 
