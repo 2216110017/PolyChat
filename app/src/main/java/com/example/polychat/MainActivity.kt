@@ -39,6 +39,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        mDbRef = Firebase.database.reference
+        userList = ArrayList()
+        adapter = UserAdapter(this, userList)
+        binding.userRecycelrView.layoutManager = LinearLayoutManager(this)
+        binding.userRecycelrView.adapter = adapter
 //        // intent에서 사용자 세부정보 가져오기
 //        val stuName = intent.getStringExtra("stuName")
 //        val department = intent.getStringExtra("department")
@@ -67,30 +72,46 @@ class MainActivity : AppCompatActivity() {
                     .first()
 
             loggedInUser = User(stuName, stuNum, department, email, phone, uId)
+
+            fetchUsersByDepartment(loggedInUser.department)
         }
 
 
-        mDbRef = Firebase.database.reference
-        userList = ArrayList()
-        adapter = UserAdapter(this, userList)
-        binding.userRecycelrView.layoutManager = LinearLayoutManager(this)
-        binding.userRecycelrView.adapter = adapter
+//        mDbRef.child("user").addValueEventListener(object:ValueEventListener{
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                for(postSnapshot in snapshot.children){
+//                    val currentUser = postSnapshot.getValue(User::class.java)
+//                    if(loggedInUser.uId != currentUser?.uId){
+//                        userList.add(currentUser!!)
+//                    }
+//                }
+//                adapter.notifyDataSetChanged()
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                // Handle error
+//            }
+//        })
+    }
 
-        mDbRef.child("user").addValueEventListener(object:ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for(postSnapshot in snapshot.children){
-                    val currentUser = postSnapshot.getValue(User::class.java)
-                    if(loggedInUser.uId != currentUser?.uId){
-                        userList.add(currentUser!!)
+    private fun fetchUsersByDepartment(department: String) {
+        mDbRef.child("user").orderByChild("department").equalTo(department)
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    userList.clear() // 기존 목록을 지우고 새로운 데이터로 업데이트
+                    for (postSnapshot in snapshot.children) {
+                        val currentUser = postSnapshot.getValue(User::class.java)
+                        if (loggedInUser.uId != currentUser?.uId) {
+                            userList.add(currentUser!!)
+                        }
                     }
+                    adapter.notifyDataSetChanged()
                 }
-                adapter.notifyDataSetChanged()
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    // 에러 처리
+                }
+            })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
