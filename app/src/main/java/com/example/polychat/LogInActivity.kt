@@ -3,6 +3,7 @@ package com.example.polychat
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -79,18 +80,28 @@ class LogInActivity : AppCompatActivity() {
 
             // Firebase에 사용자 정보 저장
             mDbRef.child("user").child(validUser.uId).setValue(validUser)
+                .addOnSuccessListener {
+                    // 데이터 저장 성공
+                }
+                .addOnFailureListener { exception ->
+                    // 데이터 저장 실패
+                    Log.e("FirebaseError", "uId 저장 실패: ${exception.message}")
+                }
+
+            Log.d("LoginActivity", "User UID: ${validUser.uId}")
 
             val intent = Intent(this@LogInActivity, NewActivity::class.java)
             intent.putExtra("stuName", validUser.stuName)
             intent.putExtra("department", validUser.department)
             intent.putExtra("stuNum", validUser.stuNum)
-            intent.putExtra("loginUID", validUser.uId)
+            intent.putExtra("uId", validUser.uId)
             startActivity(intent)
             finish()
         } else {
             // 로그인 실패 처리
             Toast.makeText(this, "로그인에 실패하였습니다. 이름과 학번이 올바르게 입력되었는지 확인해주세요", Toast.LENGTH_SHORT).show()
         }
+
     }
 
     private fun checkUser(stuName: String, stuNum: String): User? {

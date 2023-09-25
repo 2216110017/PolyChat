@@ -2,6 +2,7 @@ package com.example.polychat
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -34,7 +35,8 @@ class BoardActivity : AppCompatActivity() {
         val stuName = intent.getStringExtra("stuName")
         val department = intent.getStringExtra("department")
         val stuNum = intent.getStringExtra("stuNum")
-        val loginUID = intent.getStringExtra("loginUID")
+        val uId = intent.getStringExtra("uId")
+        Log.d("BoardActivity", "Received UID: $uId")
 
         listView = findViewById(R.id.listView)
         databaseReference = FirebaseDatabase.getInstance().getReference("post")
@@ -44,9 +46,17 @@ class BoardActivity : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 postList.clear()
                 for (postSnapshot in snapshot.children) {
-                    val post = postSnapshot.getValue(Post::class.java)
-                    if (post != null) {
+                    try {
+                        val title = postSnapshot.child("title").getValue(String::class.java) ?: ""
+                        val content = postSnapshot.child("content").getValue(String::class.java) ?: ""
+                        val uid = postSnapshot.child("uid").getValue(String::class.java) ?: ""
+                        val noticechk = postSnapshot.child("noticechk").getValue(Long::class.java)?.toInt() ?: 0
+
+                        val post = Post(title, content, uid, noticechk)
                         postList.add(post)
+                    } catch (e: Exception) {
+                        // 데이터 변환 중에 문제가 발생한 경우 로그를 출력하거나 오류 메시지를 표시
+                        Log.e("BoardActivity", "Error reading post data: ${e.message}")
                     }
                 }
                 // 'noticechk' 값을 기준으로 목록을 정렬
@@ -57,17 +67,20 @@ class BoardActivity : AppCompatActivity() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@BoardActivity, "Error loading posts: ${error.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@BoardActivity, "게시물 불러오기 중 오류 발생: ${error.message}", Toast.LENGTH_SHORT).show()
             }
         })
 
         findViewById<View>(R.id.write_button).setOnClickListener {
-            startActivity(Intent(this@BoardActivity, WriteActivity::class.java))
+            val intent = Intent(this@BoardActivity, WriteActivity::class.java)
             intent.putExtra("stuName", stuName)
             intent.putExtra("department", department)
             intent.putExtra("stuNum", stuNum)
-            intent.putExtra("loginUID", loginUID)
+            intent.putExtra("uId", uId)
+            Log.d("BoardActivity", "WriteActivity에 UID 보내기: $uId")
+            startActivity(intent)
         }
+
 
         findViewById<View>(R.id.back_button).setOnClickListener {
             finish()

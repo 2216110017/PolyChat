@@ -2,11 +2,13 @@ package com.example.polychat
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -36,7 +38,8 @@ class WriteActivity : AppCompatActivity() {
 //        val stuName = intent.getStringExtra("stuName")
 //        val department = intent.getStringExtra("department")
 //        val stuNum = intent.getStringExtra("stuNum")
-        val uid = intent.getStringExtra("loginUID") ?: ""
+        val uId = intent.getStringExtra("uId")
+        Log.d("WriteActivity", "BoardActivity에서 받은 uId값 : $uId")
 
         titleEditText = findViewById(R.id.title_edittext)
         contentEditText = findViewById(R.id.content_edittext)
@@ -48,8 +51,16 @@ class WriteActivity : AppCompatActivity() {
             val content = contentEditText.text.toString()
             val noticechk = if (noticeCheckbox.isChecked) 1 else 0
 
-            val post = Post(title, content, uid = uid, noticechk = noticechk)
-            databaseReference.child(uid).setValue(post)
+            if (uId!!.isBlank()) {
+                Toast.makeText(this, "UID가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val post = Post(title, content, uid = uId, noticechk = noticechk)
+            val postKey = databaseReference.push().key  // 고유한 키 생성
+            if (postKey != null) {
+                databaseReference.child(postKey).setValue(post)
+            }
             finish()
         }
 

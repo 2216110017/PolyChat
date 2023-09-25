@@ -30,7 +30,7 @@ class NewActivity : AppCompatActivity() {
         val stuName = intent.getStringExtra("stuName")
         val department = intent.getStringExtra("department")
         val stuNum = intent.getStringExtra("stuNum")
-        val loginUID = intent.getStringExtra("loginUID")
+        val uId = intent.getStringExtra("uId")
 
         binding.stuNameText.text = stuName
         binding.departmentText.text = department
@@ -41,7 +41,7 @@ class NewActivity : AppCompatActivity() {
             intent.putExtra("stuName", stuName)
             intent.putExtra("department", department)
             intent.putExtra("stuNum", stuNum)
-            intent.putExtra("loginUID", loginUID)
+            intent.putExtra("uId", uId)
             startActivity(intent)
         }
 
@@ -50,7 +50,7 @@ class NewActivity : AppCompatActivity() {
             intent.putExtra("stuName", stuName)
             intent.putExtra("department", department)
             intent.putExtra("stuNum", stuNum)
-            intent.putExtra("loginUID", loginUID)
+            intent.putExtra("uId", uId)
             startActivity(intent)
         }
 
