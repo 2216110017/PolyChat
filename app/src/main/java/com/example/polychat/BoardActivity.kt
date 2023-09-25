@@ -2,18 +2,30 @@ package com.example.polychat
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ListView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.lifecycleScope
 import com.google.firebase.database.*
+import kotlinx.coroutines.launch
 
 class BoardActivity : AppCompatActivity() {
 
     private lateinit var listView: ListView
     private lateinit var databaseReference: DatabaseReference
     private val postList = mutableListOf<Post>()
+
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            finish()            // 뒤로가기 시 실행할 코드
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +83,29 @@ class BoardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
 
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == R.id.log_out){
+            // 로그아웃 로직 처리
+            lifecycleScope.launch {
+                dataStore.edit { preferences ->
+                    preferences.clear()
+                }
+            }
+
+            val intent = Intent(this@BoardActivity, LogInActivity::class.java)
+            startActivity(intent)
+            finish()
+            return true
+        }
+        return true
     }
 }

@@ -3,6 +3,7 @@ package com.example.polychat
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.lifecycleScope
@@ -10,6 +11,8 @@ import com.example.polychat.databinding.ActivityLogInBinding
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
@@ -29,11 +32,34 @@ class LogInActivity : AppCompatActivity() {
 
         // 로그인 버튼 이벤트
         binding.loginBtn.setOnClickListener {
+
             val stuName = binding.stuNameEdit.text.toString()
             val stuNum = binding.stuNumEdit.text.toString()
 
+            if (binding.checkBoxRememberLogin.isChecked) {
+                lifecycleScope.launch {
+                    dataStore.edit { preferences ->
+                        preferences[stringPreferencesKey("savedStuName")] = stuName
+                        preferences[stringPreferencesKey("savedStuNum")] = stuNum
+                    }
+                }
+            }
+
             loginUser(stuName, stuNum)
         }
+
+        lifecycleScope.launch {
+            val savedStuName = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("savedStuName")] ?: ""
+            }.first()
+            val savedStuNum = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("savedStuNum")] ?: ""
+            }.first()
+
+            binding.stuNameEdit.setText(savedStuName)
+            binding.stuNumEdit.setText(savedStuNum)
+        }
+
     }
 
     private fun loginUser(stuName: String, stuNum: String) {
@@ -63,6 +89,7 @@ class LogInActivity : AppCompatActivity() {
             finish()
         } else {
             // 로그인 실패 처리
+            Toast.makeText(this, "로그인에 실패하였습니다. 이름과 학번이 올바르게 입력되었는지 확인해주세요", Toast.LENGTH_SHORT).show()
         }
     }
 

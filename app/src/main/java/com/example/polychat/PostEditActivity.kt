@@ -1,14 +1,21 @@
 package com.example.polychat
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.lifecycleScope
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import kotlinx.coroutines.launch
 
 class PostEditActivity : AppCompatActivity() {
 
@@ -18,6 +25,12 @@ class PostEditActivity : AppCompatActivity() {
     private lateinit var databaseReference: DatabaseReference
 
     private var postUID: String? = null
+
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            finish()            // 뒤로가기 시 실행할 코드
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +69,8 @@ class PostEditActivity : AppCompatActivity() {
                 finish()
             }
         }
+
+        this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
     }
 
     private fun showWarningDialog() {
@@ -82,5 +97,26 @@ class PostEditActivity : AppCompatActivity() {
                 Toast.makeText(this, "오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == R.id.log_out){
+            // 로그아웃 로직 처리
+            lifecycleScope.launch {
+                dataStore.edit { preferences ->
+                    preferences.clear()
+                }
+            }
+
+            val intent = Intent(this@PostEditActivity, LogInActivity::class.java)
+            startActivity(intent)
+            finish()
+            return true
+        }
+        return true
     }
 }

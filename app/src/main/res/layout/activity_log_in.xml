@@ -45,7 +45,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/stuNumEdit"
-        android:text="로그인 유지" />
+        android:text="이름, 학번 자동입력" />
 
     <Button
         android:id="@+id/loginBtn"

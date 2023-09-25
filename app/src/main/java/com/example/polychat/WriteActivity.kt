@@ -1,13 +1,20 @@
 package com.example.polychat
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
 import android.widget.EditText
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.lifecycleScope
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import kotlinx.coroutines.launch
 
 class WriteActivity : AppCompatActivity() {
 
@@ -16,6 +23,11 @@ class WriteActivity : AppCompatActivity() {
     private lateinit var noticeCheckbox: CheckBox
     private lateinit var databaseReference: DatabaseReference
 
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            finish()            // 뒤로가기 시 실행할 코드
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +60,9 @@ class WriteActivity : AppCompatActivity() {
                 finish()
             }
         }
+
+        this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
+
     }
 
     private fun showWarningDialog() {
@@ -58,5 +73,26 @@ class WriteActivity : AppCompatActivity() {
             }
             .setNegativeButton("취소", null)
             .show()
+    }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == R.id.log_out){
+            // 로그아웃 로직 처리
+            lifecycleScope.launch {
+                dataStore.edit { preferences ->
+                    preferences.clear()
+                }
+            }
+
+            val intent = Intent(this@WriteActivity, LogInActivity::class.java)
+            startActivity(intent)
+            finish()
+            return true
+        }
+        return true
     }
 }
