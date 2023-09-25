@@ -54,7 +54,11 @@ class LogInActivity : AppCompatActivity() {
             // Firebase에 사용자 정보 저장
             mDbRef.child("user").child(validUser.uId).setValue(validUser)
 
-            val intent = Intent(this@LogInActivity, MainActivity::class.java)
+            val intent = Intent(this@LogInActivity, NewActivity::class.java)
+            intent.putExtra("stuName", validUser.stuName)
+            intent.putExtra("department", validUser.department)
+            intent.putExtra("stuNum", validUser.stuNum)
+            intent.putExtra("loginUID", validUser.uId)
             startActivity(intent)
             finish()
         } else {

@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.polychat.databinding.ActivityChatBinding
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -18,7 +17,6 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var receiverName: String
     private lateinit var receiverUid: String
     private lateinit var binding: ActivityChatBinding
-    private lateinit var mAuth: FirebaseAuth
     private lateinit var mDbRef: DatabaseReference
     private lateinit var receiverRoom: String
     private lateinit var senderRoom: String
@@ -58,7 +56,6 @@ class ChatActivity : AppCompatActivity() {
 
         messageList = ArrayList()
 
-//        val messageAdapter: MessageAdapter = MessageAdapter(this, messageList)
         val messageAdapter = MessageAdapter(this, messageList, loggedInUser.uId)
 
 
