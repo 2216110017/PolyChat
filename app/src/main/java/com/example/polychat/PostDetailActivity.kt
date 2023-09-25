@@ -32,6 +32,8 @@ class PostDetailActivity : AppCompatActivity() {
     private var userUID: String? = null
     private var noticechk: Int = 0  // 기본값은 0으로 설정
 
+
+
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             finish()            // 뒤로가기 시 실행할 코드
@@ -53,16 +55,6 @@ class PostDetailActivity : AppCompatActivity() {
         postUID = intent.getStringExtra("post_uid")
         userUID = intent.getStringExtra("user_uid")
 
-//        // Firebase에서 게시물 데이터를 검색하고 라벨 설정
-//        // postUID가 userUID와 동일하면 편집 및 삭제 버튼을 표시
-//        if (postUID == userUID) {
-//            editButton.visibility = View.VISIBLE
-//            deleteButton.visibility = View.VISIBLE
-//        } else {
-//            editButton.visibility = View.GONE
-//            deleteButton.visibility = View.GONE
-//        }
-
         fetchPostDetails()
 
         editButton.setOnClickListener {
@@ -73,6 +65,7 @@ class PostDetailActivity : AppCompatActivity() {
             intent.putExtra("post_content", contentLabel.text.toString())
             intent.putExtra("user_uid", userUID)
             intent.putExtra("notice", noticechk == 1)
+            intent.putExtra("department", contentLabel.tag.toString()) // 학과 정보 추가
             startActivity(intent)
         }
 
@@ -99,6 +92,7 @@ class PostDetailActivity : AppCompatActivity() {
                     post?.let {
                         titleLabel.text = it.title
                         contentLabel.text = it.content
+                        contentLabel.tag = it.department // 학과 정보를 tag에 저장
                         noticechk = it.noticechk
 
                         // postUID가 userUID와 동일하면 편집 및 삭제 버튼을 표시

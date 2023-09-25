@@ -33,7 +33,7 @@ class BoardActivity : AppCompatActivity() {
         setContentView(R.layout.activity_board)
 
         val stuName = intent.getStringExtra("stuName")
-        val department = intent.getStringExtra("department")
+        val department = intent.getStringExtra("department") ?: ""
         val stuNum = intent.getStringExtra("stuNum")
         val uId = intent.getStringExtra("uId")
         Log.d("BoardActivity", "Received UID: $uId")
@@ -47,13 +47,16 @@ class BoardActivity : AppCompatActivity() {
                 postList.clear()
                 for (postSnapshot in snapshot.children) {
                     try {
-                        val title = postSnapshot.child("title").getValue(String::class.java) ?: ""
-                        val content = postSnapshot.child("content").getValue(String::class.java) ?: ""
-                        val uid = postSnapshot.child("uid").getValue(String::class.java) ?: ""
-                        val noticechk = postSnapshot.child("noticechk").getValue(Long::class.java)?.toInt() ?: 0
+                        val postDepartment = postSnapshot.child("department").getValue(String::class.java) ?: ""
+                        if (postDepartment == department) {
+                            val title = postSnapshot.child("title").getValue(String::class.java) ?: ""
+                            val content = postSnapshot.child("content").getValue(String::class.java) ?: ""
+                            val uid = postSnapshot.child("uid").getValue(String::class.java) ?: ""
+                            val noticechk = postSnapshot.child("noticechk").getValue(Long::class.java)?.toInt() ?: 0
 
-                        val post = Post(title, content, uid, noticechk)
-                        postList.add(post)
+                            val post = Post(title, content, uid, noticechk, department)
+                            postList.add(post)
+                        }
                     } catch (e: Exception) {
                         // 데이터 변환 중에 문제가 발생한 경우 로그를 출력하거나 오류 메시지를 표시
                         Log.e("BoardActivity", "Error reading post data: ${e.message}")
@@ -93,6 +96,7 @@ class BoardActivity : AppCompatActivity() {
             intent.putExtra("postTitle", selectedPost.title)
             intent.putExtra("postContent", selectedPost.content)
             intent.putExtra("postUid", selectedPost.uid)  // 게시글 작성자의 uid 전달
+            intent.putExtra("department", department)
             startActivity(intent)
         }
 
