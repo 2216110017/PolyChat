@@ -11,6 +11,9 @@ import com.google.firebase.database.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 class ChatActivity : AppCompatActivity() {
 
@@ -82,7 +85,12 @@ class ChatActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val message = binding.messageEdit.text.toString()
-            val messageObject = Message(message, loggedInUser.uId)
+//            val messageObject = Message(message, loggedInUser.uId)
+            val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
+                timeZone = TimeZone.getTimeZone("Asia/Seoul")
+            }.format(System.currentTimeMillis())
+
+            val messageObject = Message(message, loggedInUser.uId, currentTime)
 
             mDbRef.child("chats").child(senderRoom).child("messages").push()
                 .setValue(messageObject).addOnSuccessListener {
