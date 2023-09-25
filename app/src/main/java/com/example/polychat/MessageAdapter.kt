@@ -29,15 +29,24 @@ class MessageAdapter(private val context: Context, private val messageList: Arra
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         //현재 메시지
         val currentMessage = messageList[position]
+        val previousMessage = if (position > 0) messageList[position - 1] else null
 
         when (holder) {
             is SendViewHolder -> {
                 holder.sendMessage.text = currentMessage.message
                 holder.sendTime.text = currentMessage.sentTime
+
+                if (previousMessage == null || previousMessage.fullDate != currentMessage.fullDate) {
+                    // 날짜 구분선을 추가하는 로직
+                }
             }
             is ReceiveViewHolder -> {
                 holder.receiveMessage.text = currentMessage.message
                 holder.receiveTime.text = currentMessage.sentTime
+
+                if (previousMessage == null || previousMessage.fullDate != currentMessage.fullDate) {
+                    // 날짜 구분선을 추가하는 로직
+                }
             }
         }
     }

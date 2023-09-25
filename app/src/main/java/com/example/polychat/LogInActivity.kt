@@ -10,6 +10,8 @@ import com.example.polychat.databinding.ActivityLogInBinding
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
@@ -32,8 +34,30 @@ class LogInActivity : AppCompatActivity() {
             val stuName = binding.stuNameEdit.text.toString()
             val stuNum = binding.stuNumEdit.text.toString()
 
+            if (binding.checkBoxRememberLogin.isChecked) {
+                lifecycleScope.launch {
+                    dataStore.edit { preferences ->
+                        preferences[stringPreferencesKey("savedStuName")] = stuName
+                        preferences[stringPreferencesKey("savedStuNum")] = stuNum
+                    }
+                }
+            }
+
             loginUser(stuName, stuNum)
         }
+
+        lifecycleScope.launch {
+            val savedStuName = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("savedStuName")] ?: ""
+            }.first()
+            val savedStuNum = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("savedStuNum")] ?: ""
+            }.first()
+
+            binding.stuNameEdit.setText(savedStuName)
+            binding.stuNumEdit.setText(savedStuNum)
+        }
+
     }
 
     private fun loginUser(stuName: String, stuNum: String) {
