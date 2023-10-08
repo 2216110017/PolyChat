@@ -107,7 +107,7 @@ class PostDetailActivity : AppCompatActivity() {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e("PostDetailActivity", "Database read failed: ${error.message}")
+                    Log.e("PostDetailActivity", "데이터베이스 읽기 실패: ${error.message}")
                     // 사용자에게 오류 알림 표시
                     Toast.makeText(this@PostDetailActivity, "데이터를 불러오는 데 실패했습니다. 다시 시도해 주세요.", Toast.LENGTH_SHORT).show()
                 }
