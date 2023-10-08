@@ -76,6 +76,11 @@ class MainActivity : AppCompatActivity() {
             fetchUsersByDepartment(loggedInUser.department)
         }
 
+        binding.groupChatButton.setOnClickListener {
+            val intent = Intent(this, GroupChatActivity::class.java)
+            intent.putExtra("department", loggedInUser.department)  // 학과 정보 전달
+            startActivity(intent)
+        }
 
 //        mDbRef.child("user").addValueEventListener(object:ValueEventListener{
 //            override fun onDataChange(snapshot: DataSnapshot) {
