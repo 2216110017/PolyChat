@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ChatActivity"
-    android:padding="16dp">
+    android:padding="8dp">
 
     <!-- 대화 내용 -->
     <androidx.recyclerview.widget.RecyclerView
@@ -29,12 +29,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <ImageButton
+            android:id="@+id/attach_btn"
+            android:layout_width="30dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="10dp"
+            android:layout_weight="10"
+            android:src="@drawable/baseline_add_24" />
+
         <EditText
             android:id="@+id/message_edit"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_marginStart="10dp"
-            android:layout_weight="85"
+            android:layout_weight="75"
             android:hint="메시지를 입력하세요"
             android:paddingStart="10dp" />
 
