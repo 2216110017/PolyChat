@@ -52,8 +52,10 @@ class PostDetailActivity : AppCompatActivity() {
 
         databaseReference = FirebaseDatabase.getInstance().getReference("post")
 
-        postUID = intent.getStringExtra("post_uid")
-        userUID = intent.getStringExtra("user_uid")
+        postUID = intent.getStringExtra("postUid")
+        Log.d("PostDetailActivity", "BoardActivity에서 받아온 postUID: $postUID") //로그확인용
+        userUID = intent.getStringExtra("uId")
+        Log.d("PostDetailActivity", "BoardActivity에서 받아온 loginUID: $userUID") //로그확인용
 
         fetchPostDetails()
 
@@ -72,14 +74,10 @@ class PostDetailActivity : AppCompatActivity() {
         deleteButton.setOnClickListener {
             // Firebase에서 게시물 삭제
             databaseReference.child(postUID ?: "").removeValue()
-            val intent = Intent(this@PostDetailActivity, BoardActivity::class.java)
-            startActivity(intent)
             finish()
         }
 
         backButton.setOnClickListener {
-            val intent = Intent(this@PostDetailActivity, BoardActivity::class.java)
-            startActivity(intent)
             finish()
         }
     }
@@ -88,7 +86,14 @@ class PostDetailActivity : AppCompatActivity() {
         postUID?.let { it ->
             databaseReference.child(it).addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    // Firebase에서 반환되는 DataSnapshot 객체의 값을 로그로 출력
+                    Log.d("PostDetailActivity", "DataSnapshot 값: ${snapshot.value}")
+
                     val post = snapshot.getValue(Post::class.java)
+
+                    // Post 객체로의 변환 후 로그 출력
+                    Log.d("PostDetailActivity", "변환된 게시물 객체 Converted Post object: $post")
+
                     post?.let {
                         titleLabel.text = it.title
                         contentLabel.text = it.content
@@ -107,7 +112,7 @@ class PostDetailActivity : AppCompatActivity() {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e("PostDetailActivity", "Database read failed: ${error.message}")
+                    Log.e("PostDetailActivity", "데이터베이스 읽기 실패: ${error.message}")
                     // 사용자에게 오류 알림 표시
                     Toast.makeText(this@PostDetailActivity, "데이터를 불러오는 데 실패했습니다. 다시 시도해 주세요.", Toast.LENGTH_SHORT).show()
                 }

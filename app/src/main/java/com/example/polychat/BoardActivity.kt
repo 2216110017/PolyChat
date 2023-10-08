@@ -12,8 +12,6 @@ import android.widget.ListView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.datastore.preferences.core.edit
-import androidx.lifecycle.lifecycleScope
 import com.google.firebase.database.*
 import kotlinx.coroutines.launch
 
@@ -28,7 +26,7 @@ class BoardActivity : AppCompatActivity() {
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            finish()            // 뒤로가기 시 실행할 코드
+            finish()  // 뒤로가기 시 실행할 코드
         }
     }
 
@@ -40,7 +38,7 @@ class BoardActivity : AppCompatActivity() {
         val department = intent.getStringExtra("department") ?: ""
         val stuNum = intent.getStringExtra("stuNum")
         val uId = intent.getStringExtra("uId")
-        Log.d("BoardActivity", "Received UID: $uId")
+        Log.d("BoardActivity", "NewActivity에서 받은 UID: $uId")
 
         noticeListView = findViewById(R.id.noticeListView)
         normalListView = findViewById(R.id.normalListView)
@@ -61,7 +59,7 @@ class BoardActivity : AppCompatActivity() {
                             val uid = postSnapshot.child("uid").getValue(String::class.java) ?: ""
                             val noticechk = postSnapshot.child("noticechk").getValue(Long::class.java)?.toInt() ?: 0
 
-                            val post = Post(title, content, uid, noticechk, department)
+                            val post = Post(title, content, uid, noticechk, department, postSnapshot.key)  // postSnapshot.key를 사용하여 postId 값을 설정
                             if (noticechk == 1) {
                                 noticeList.add(post)
                             } else {
@@ -69,12 +67,15 @@ class BoardActivity : AppCompatActivity() {
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e("BoardActivity", "Error reading post data: ${e.message}")
+                        Log.e("BoardActivity", "게시글 불러오기 실패: ${e.message}")
                     }
                 }
 
                 val normalAdapter = PostAdapter(this@BoardActivity, normalList)
                 normalListView.adapter = normalAdapter
+
+                val noticeAdapter = PostAdapter(this@BoardActivity, noticeList)
+                noticeListView.adapter = noticeAdapter
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -85,15 +86,11 @@ class BoardActivity : AppCompatActivity() {
         toggleNoticeIcon.setOnClickListener {
             if (noticeListView.visibility == View.VISIBLE) {
                 noticeListView.visibility = View.GONE
-                val noticeAdapter = PostAdapter(this@BoardActivity, noticeList)
-                noticeListView.adapter = noticeAdapter
-                toggleNoticeIcon.setImageResource(R.drawable.baseline_expand_more_24)  // 아이콘을 펼치기 상태로 변경
+                toggleNoticeIcon.setImageResource(R.drawable.baseline_expand_more_24)
             } else {
                 noticeListView.visibility = View.VISIBLE
-                val limitedNoticeList = noticeList.take(3)
-                val noticeAdapter = PostAdapter(this@BoardActivity, limitedNoticeList)
-                noticeListView.adapter = noticeAdapter
-                toggleNoticeIcon.setImageResource(R.drawable.baseline_expand_less_24)  // 아이콘을 접기 상태로 변경
+                setListViewHeightBasedOnChildren(noticeListView)
+                toggleNoticeIcon.setImageResource(R.drawable.baseline_expand_less_24)
             }
         }
 
@@ -117,8 +114,9 @@ class BoardActivity : AppCompatActivity() {
             val intent = Intent(this@BoardActivity, PostDetailActivity::class.java)
             intent.putExtra("postTitle", selectedPost.title)
             intent.putExtra("postContent", selectedPost.content)
-            intent.putExtra("postUid", selectedPost.uid)
+            intent.putExtra("postUid", selectedPost.postID)
             intent.putExtra("department", department)
+            intent.putExtra("uId", uId)
             startActivity(intent)
         }
 
@@ -128,12 +126,28 @@ class BoardActivity : AppCompatActivity() {
             val intent = Intent(this@BoardActivity, PostDetailActivity::class.java)
             intent.putExtra("postTitle", selectedPost.title)
             intent.putExtra("postContent", selectedPost.content)
-            intent.putExtra("postUid", selectedPost.uid)
+            intent.putExtra("postUid", selectedPost.postID)
             intent.putExtra("department", department)
+            intent.putExtra("uId", uId)
             startActivity(intent)
         }
 
         this.onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+    }
+
+    private fun setListViewHeightBasedOnChildren(listView: ListView) {
+        val listAdapter = listView.adapter ?: return
+        var totalHeight = 0
+        val desiredWidth = View.MeasureSpec.makeMeasureSpec(listView.width, View.MeasureSpec.AT_MOST)
+        for (i in 0 until listAdapter.count) {
+            val listItem = listAdapter.getView(i, null, listView)
+            listItem.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED)
+            totalHeight += listItem.measuredHeight
+        }
+        val params = listView.layoutParams
+        params.height = totalHeight + (listView.dividerHeight * (listAdapter.count - 1))
+        listView.layoutParams = params
+        listView.requestLayout()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -143,12 +157,6 @@ class BoardActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.log_out) {
-            lifecycleScope.launch {
-                dataStore.edit { preferences ->
-                    preferences.clear()
-                }
-            }
-
             val intent = Intent(this@BoardActivity, LogInActivity::class.java)
             startActivity(intent)
             finish()
