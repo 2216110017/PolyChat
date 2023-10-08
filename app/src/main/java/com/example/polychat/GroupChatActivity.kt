@@ -1,11 +1,14 @@
 package com.example.polychat
 
+import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -19,6 +22,9 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
+import com.google.firebase.storage.FirebaseStorage
+import java.util.Date
+
 
 class GroupChatActivity : AppCompatActivity() {
 
@@ -31,10 +37,20 @@ class GroupChatActivity : AppCompatActivity() {
     private lateinit var loggedInUser: User
     private lateinit var messageList: ArrayList<Message>
     private var isUserInitialized = false // loggedInUser가 초기화되었는지 확인하는 변수
+    private val REQUEST_CODE_FILE_PICKER = 1001
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             finish()            // 뒤로가기 시 실행할 코드
+        }
+    }
+
+    private val filePickerActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val fileUri = result.data?.data
+            fileUri?.let {
+                uploadFileToFirebaseStorage(it)
+            }
         }
     }
 
@@ -121,14 +137,59 @@ class GroupChatActivity : AppCompatActivity() {
                         messageList.add(message!!)
                     }
                     messageAdapter.notifyDataSetChanged()
+                    // RecyclerView를 최하단으로 스크롤
+                    binding.chatRecyclerView.scrollToPosition(messageList.size - 1)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     // Handle error
                 }
             })
+
+        // 첨부 버튼 클릭 리스너 설정
+        binding.attachBtn.setOnClickListener {
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "*/*"
+            filePickerActivityResultLauncher.launch(intent)
+        }
+
         this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_FILE_PICKER && resultCode == Activity.RESULT_OK) {
+            val fileUri = data?.data
+            fileUri?.let {
+                uploadFileToFirebaseStorage(it)
+            }
+        }
+    }
+
+    private fun uploadFileToFirebaseStorage(fileUri: Uri) {
+        val currentDate = SimpleDateFormat("yyyyMMdd").format(Date())
+        val storagePath = "/$currentDate/$senderRoom/${loggedInUser.uId}/${fileUri.lastPathSegment}"
+        val storageRef = FirebaseStorage.getInstance().getReference(storagePath)
+
+        storageRef.putFile(fileUri).addOnSuccessListener {
+            storageRef.downloadUrl.addOnSuccessListener { uri ->
+                val fileUrl = uri.toString()
+
+                // 파일 URL을 채팅 메시지로 보내기
+                val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
+                    timeZone = TimeZone.getTimeZone("Asia/Seoul")
+                }.format(System.currentTimeMillis())
+                val messageObject = Message("", loggedInUser.uId, currentTime, fileUrl)
+
+                mDbRef.child("chats").child(senderRoom).child("messages").push()
+                    .setValue(messageObject).addOnSuccessListener {
+                        mDbRef.child("chats").child(receiverRoom).child("messages").push()
+                            .setValue(messageObject)
+                    }
+            }
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return super.onCreateOptionsMenu(menu)
@@ -150,5 +211,4 @@ class GroupChatActivity : AppCompatActivity() {
         }
         return true
     }
-
 }
