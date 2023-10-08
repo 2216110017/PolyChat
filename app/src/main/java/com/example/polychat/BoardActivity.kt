@@ -38,7 +38,7 @@ class BoardActivity : AppCompatActivity() {
         val department = intent.getStringExtra("department") ?: ""
         val stuNum = intent.getStringExtra("stuNum")
         val uId = intent.getStringExtra("uId")
-        Log.d("BoardActivity", "Received UID: $uId")
+        Log.d("BoardActivity", "NewActivity에서 받은 UID: $uId")
 
         noticeListView = findViewById(R.id.noticeListView)
         normalListView = findViewById(R.id.normalListView)
@@ -59,7 +59,7 @@ class BoardActivity : AppCompatActivity() {
                             val uid = postSnapshot.child("uid").getValue(String::class.java) ?: ""
                             val noticechk = postSnapshot.child("noticechk").getValue(Long::class.java)?.toInt() ?: 0
 
-                            val post = Post(title, content, uid, noticechk, department)
+                            val post = Post(title, content, uid, noticechk, department, postSnapshot.key)  // postSnapshot.key를 사용하여 postId 값을 설정
                             if (noticechk == 1) {
                                 noticeList.add(post)
                             } else {
@@ -114,8 +114,9 @@ class BoardActivity : AppCompatActivity() {
             val intent = Intent(this@BoardActivity, PostDetailActivity::class.java)
             intent.putExtra("postTitle", selectedPost.title)
             intent.putExtra("postContent", selectedPost.content)
-            intent.putExtra("postUid", selectedPost.uid)
+            intent.putExtra("postUid", selectedPost.postID)
             intent.putExtra("department", department)
+            intent.putExtra("uId", uId)
             startActivity(intent)
         }
 
@@ -125,8 +126,9 @@ class BoardActivity : AppCompatActivity() {
             val intent = Intent(this@BoardActivity, PostDetailActivity::class.java)
             intent.putExtra("postTitle", selectedPost.title)
             intent.putExtra("postContent", selectedPost.content)
-            intent.putExtra("postUid", selectedPost.uid)
+            intent.putExtra("postUid", selectedPost.postID)
             intent.putExtra("department", department)
+            intent.putExtra("uId", uId)
             startActivity(intent)
         }
 
