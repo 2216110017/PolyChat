@@ -5,11 +5,33 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- 공지사항 ListView -->
     <ListView
-        android:id="@+id/listView"
+        android:id="@+id/noticeListView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        android:layout_weight="1"/>
+
+    <!-- 공지사항 접기/펼치기를 위한 ImageView 추가 -->
+    <ImageView
+        android:id="@+id/toggleNoticeIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_expand_less_24"
+        android:layout_gravity="center_horizontal"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:clickable="true"
+        android:focusable="true"/>
+
+
+    <!-- 일반 게시물 ListView -->
+    <ListView
+        android:id="@+id/normalListView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="2" />
 
     <LinearLayout
         android:layout_width="match_parent"

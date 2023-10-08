@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
+import android.widget.ImageView
 import android.widget.ListView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -18,9 +19,12 @@ import kotlinx.coroutines.launch
 
 class BoardActivity : AppCompatActivity() {
 
-    private lateinit var listView: ListView
+    private lateinit var noticeListView: ListView
+    private lateinit var normalListView: ListView
     private lateinit var databaseReference: DatabaseReference
-    private val postList = mutableListOf<Post>()
+    private lateinit var toggleNoticeIcon: ImageView
+    private val noticeList = mutableListOf<Post>()
+    private val normalList = mutableListOf<Post>()
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -38,13 +42,16 @@ class BoardActivity : AppCompatActivity() {
         val uId = intent.getStringExtra("uId")
         Log.d("BoardActivity", "Received UID: $uId")
 
-        listView = findViewById(R.id.listView)
+        noticeListView = findViewById(R.id.noticeListView)
+        normalListView = findViewById(R.id.normalListView)
+        toggleNoticeIcon = findViewById(R.id.toggleNoticeIcon)
         databaseReference = FirebaseDatabase.getInstance().getReference("post")
 
         // Firebase에서 게시물 불러오기
         databaseReference.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                postList.clear()
+                noticeList.clear()
+                normalList.clear()
                 for (postSnapshot in snapshot.children) {
                     try {
                         val postDepartment = postSnapshot.child("department").getValue(String::class.java) ?: ""
@@ -55,24 +62,40 @@ class BoardActivity : AppCompatActivity() {
                             val noticechk = postSnapshot.child("noticechk").getValue(Long::class.java)?.toInt() ?: 0
 
                             val post = Post(title, content, uid, noticechk, department)
-                            postList.add(post)
+                            if (noticechk == 1) {
+                                noticeList.add(post)
+                            } else {
+                                normalList.add(post)
+                            }
                         }
                     } catch (e: Exception) {
-                        // 데이터 변환 중에 문제가 발생한 경우 로그를 출력하거나 오류 메시지를 표시
                         Log.e("BoardActivity", "Error reading post data: ${e.message}")
                     }
                 }
-                // 'noticechk' 값을 기준으로 목록을 정렬
-                postList.sortByDescending { it.noticechk }
-                // PostAdapter를 listView로 설정
-                val adapter = PostAdapter(this@BoardActivity, postList)
-                listView.adapter = adapter
+
+                val normalAdapter = PostAdapter(this@BoardActivity, normalList)
+                normalListView.adapter = normalAdapter
             }
 
             override fun onCancelled(error: DatabaseError) {
                 Toast.makeText(this@BoardActivity, "게시물 불러오기 중 오류 발생: ${error.message}", Toast.LENGTH_SHORT).show()
             }
         })
+
+        toggleNoticeIcon.setOnClickListener {
+            if (noticeListView.visibility == View.VISIBLE) {
+                noticeListView.visibility = View.GONE
+                val noticeAdapter = PostAdapter(this@BoardActivity, noticeList)
+                noticeListView.adapter = noticeAdapter
+                toggleNoticeIcon.setImageResource(R.drawable.baseline_expand_more_24)  // 아이콘을 펼치기 상태로 변경
+            } else {
+                noticeListView.visibility = View.VISIBLE
+                val limitedNoticeList = noticeList.take(3)
+                val noticeAdapter = PostAdapter(this@BoardActivity, limitedNoticeList)
+                noticeListView.adapter = noticeAdapter
+                toggleNoticeIcon.setImageResource(R.drawable.baseline_expand_less_24)  // 아이콘을 접기 상태로 변경
+            }
+        }
 
         findViewById<View>(R.id.write_button).setOnClickListener {
             val intent = Intent(this@BoardActivity, WriteActivity::class.java)
@@ -84,24 +107,33 @@ class BoardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
         findViewById<View>(R.id.back_button).setOnClickListener {
             finish()
         }
 
-        listView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
-            val selectedPost = postList[position]
-            // Handle item click
+        // 공지사항 ListView 아이템 클릭 리스너
+        noticeListView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
+            val selectedPost = noticeList[position]
             val intent = Intent(this@BoardActivity, PostDetailActivity::class.java)
             intent.putExtra("postTitle", selectedPost.title)
             intent.putExtra("postContent", selectedPost.content)
-            intent.putExtra("postUid", selectedPost.uid)  // 게시글 작성자의 uid 전달
+            intent.putExtra("postUid", selectedPost.uid)
             intent.putExtra("department", department)
             startActivity(intent)
         }
 
-        this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
+        // 일반 게시물 ListView 아이템 클릭 리스너
+        normalListView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
+            val selectedPost = normalList[position]
+            val intent = Intent(this@BoardActivity, PostDetailActivity::class.java)
+            intent.putExtra("postTitle", selectedPost.title)
+            intent.putExtra("postContent", selectedPost.content)
+            intent.putExtra("postUid", selectedPost.uid)
+            intent.putExtra("department", department)
+            startActivity(intent)
+        }
 
+        this.onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -110,8 +142,7 @@ class BoardActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if(item.itemId == R.id.log_out){
-            // 로그아웃 로직 처리
+        if (item.itemId == R.id.log_out) {
             lifecycleScope.launch {
                 dataStore.edit { preferences ->
                     preferences.clear()

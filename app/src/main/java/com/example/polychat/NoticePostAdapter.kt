@@ -12,7 +12,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 
 
-class PostAdapter(private val context: Context, private val dataSource: List<Post>) : BaseAdapter() {
+class NoticePostAdapter(private val context: Context, private val dataSource: List<Post>) : BaseAdapter() {
     private val inflater: LayoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
     private val userReference = FirebaseDatabase.getInstance().getReference("user")
 
@@ -35,7 +35,7 @@ class PostAdapter(private val context: Context, private val dataSource: List<Pos
         val post = getItem(position) as Post
 
         titleTextView.text = post.title
-        titleTextView.typeface = android.graphics.Typeface.DEFAULT
+        titleTextView.typeface = android.graphics.Typeface.DEFAULT_BOLD
 
         // 작성자의 이름을 가져오기
         post.uid?.let { uid ->
