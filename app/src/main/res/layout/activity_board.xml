@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        android:background="@color/material_dynamic_neutral_variant95"/>
 
     <!-- 공지사항 접기/펼치기를 위한 ImageView 추가 -->
     <ImageView
@@ -20,7 +21,6 @@
         android:layout_height="wrap_content"
         android:src="@drawable/baseline_expand_less_24"
         android:layout_gravity="center_horizontal"
-        android:padding="8dp"
         android:clickable="true"
         android:focusable="true"/>
 
