@@ -110,8 +110,14 @@ class ChatActivity : AppCompatActivity() {
                 Toast.makeText(this, "사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val message = binding.messageEdit.text.toString()
-//            val messageObject = Message(message, loggedInUser.uId)
+            val message = binding.messageEdit.text.toString().trim() // trim() = 공백 제거
+
+            if (message.isEmpty()) {
+                // 메시지가 비어있는 경우 사용자에게 알림을 표시합니다.
+                Toast.makeText(this, "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
                 timeZone = TimeZone.getTimeZone("Asia/Seoul")
             }.format(System.currentTimeMillis())

@@ -17,11 +17,21 @@ data class Message(
     var message: String?,
     var sendId: String?,
     var sentTime: String = currentFormattedTime,
+    var userName: String? = null,
     var fullDate: String = currentFullDate,
     var imageUrl: String? = null,
     var fileName: String? = null,
-    var fileUrl: String? = null,  // 추가된 필드
-    var fileType: String? = null  // 'image', 'video', 'audio', 'text' 등의 값이 될 수 있습니다.
+    var fileUrl: String? = null,
+    var fileType: String? = null
 ){
-    constructor():this("", "", "", "",null,null, null, null)
+    constructor():this(
+        "",
+        "",
+        "",
+        null,
+        "",
+        null,
+        null,
+        null,
+        null)
 }

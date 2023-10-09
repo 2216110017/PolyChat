@@ -33,7 +33,9 @@ class GroupChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGroupChatBinding
     private lateinit var mDbRef: DatabaseReference
     private lateinit var receiverRoom: String
+    private lateinit var groupReceiverRoom: String
     private lateinit var senderRoom: String
+    private lateinit var groupSenderRoom: String
     private lateinit var loggedInUser: User
     private lateinit var messageList: ArrayList<Message>
     private var isUserInitialized = false // loggedInUser가 초기화되었는지 확인하는 변수
@@ -82,12 +84,14 @@ class GroupChatActivity : AppCompatActivity() {
 
             loggedInUser = User(stuName, stuNum, department, email, phone, uId)
             isUserInitialized = true
+            groupSenderRoom = loggedInUser.department
         }
 
         messageList = ArrayList()
 
         val messageAdapter = MessageAdapter(this, messageList, loggedInUser.uId)
-
+        // Firebase 사용자 정보 노드 참조
+        val userRef = FirebaseDatabase.getInstance().reference.child("user")
 
         binding.chatRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.chatRecyclerView.adapter = messageAdapter
@@ -111,36 +115,52 @@ class GroupChatActivity : AppCompatActivity() {
                 Toast.makeText(this, "사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val message = binding.messageEdit.text.toString()
-//            val messageObject = Message(message, loggedInUser.uId)
+            val message = binding.messageEdit.text.toString().trim() // trim() = 공백 제거
+
+            if (message.isEmpty()) {
+                // 메시지가 비어있는 경우 사용자에게 알림을 표시합니다.
+                Toast.makeText(this, "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
                 timeZone = TimeZone.getTimeZone("Asia/Seoul")
             }.format(System.currentTimeMillis())
 
             val messageObject = Message(message, loggedInUser.uId, currentTime)
+            // 학과 이름을 groupSenderRoom 저장
+            groupSenderRoom = loggedInUser.department
 
-            mDbRef.child("chats").child(senderRoom).child("messages").push()
-                .setValue(messageObject).addOnSuccessListener {
-                    mDbRef.child("chats").child(receiverRoom).child("messages").push()
-                        .setValue(messageObject)
-                }
+            mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
+                .setValue(messageObject)
+
             binding.messageEdit.setText("")
         }
 
-        mDbRef.child("chats").child(senderRoom).child("messages")
+        mDbRef.child("chats").child(groupSenderRoom).child("messages")
             .addValueEventListener(object: ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
                     messageList.clear()
 
                     for(postSnapshat in snapshot.children){
                         val message = postSnapshat.getValue(Message::class.java)
-                        messageList.add(message!!)
+                        // 사용자 이름 가져오기
+                        userRef.child(message?.sendId ?: "").addListenerForSingleValueEvent(object: ValueEventListener {
+                            override fun onDataChange(userSnapshot: DataSnapshot) {
+                                val userName = userSnapshot.child("stuName").value.toString()
+                                message?.userName = userName
+                                messageList.add(message!!)
+                                messageAdapter.notifyDataSetChanged()
+                            }
+
+                            override fun onCancelled(userError: DatabaseError) {
+                                // Handle error
+                            }
+                        })
                     }
-                    messageAdapter.notifyDataSetChanged()
                     // RecyclerView를 최하단으로 스크롤
                     binding.chatRecyclerView.scrollToPosition(messageList.size - 1)
                 }
-
                 override fun onCancelled(error: DatabaseError) {
                     // Handle error
                 }
@@ -168,7 +188,7 @@ class GroupChatActivity : AppCompatActivity() {
 
     private fun uploadFileToFirebaseStorage(fileUri: Uri) {
         val currentDate = SimpleDateFormat("yyyyMMdd").format(Date())
-        val storagePath = "/$currentDate/$senderRoom/${loggedInUser.uId}/${fileUri.lastPathSegment}"
+        val storagePath = "/$currentDate/$groupSenderRoom/${loggedInUser.uId}/${fileUri.lastPathSegment}"
         val storageRef = FirebaseStorage.getInstance().getReference(storagePath)
 
         storageRef.putFile(fileUri).addOnSuccessListener {
@@ -181,9 +201,9 @@ class GroupChatActivity : AppCompatActivity() {
                 }.format(System.currentTimeMillis())
                 val messageObject = Message("", loggedInUser.uId, currentTime, fileUrl)
 
-                mDbRef.child("chats").child(senderRoom).child("messages").push()
+                mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
                     .setValue(messageObject).addOnSuccessListener {
-                        mDbRef.child("chats").child(receiverRoom).child("messages").push()
+                        mDbRef.child("chats").child(groupReceiverRoom).child("messages").push()
                             .setValue(messageObject)
                     }
             }

@@ -59,11 +59,13 @@ class MessageAdapter(
             is SendViewHolder -> {
                 holder.sendMessage.text = currentMessage.message
                 holder.sendTime.text = currentMessage.sentTime
+                holder.sendUserName.text = currentMessage.userName
             }
 
             is ReceiveViewHolder -> {
                 holder.receiveMessage.text = currentMessage.message
                 holder.receiveTime.text = currentMessage.sentTime
+                holder.receiveUserName.text = currentMessage.userName
             }
 
             is SendImageViewHolder -> {
@@ -111,7 +113,6 @@ class MessageAdapter(
         }
     }
 
-
     override fun getItemCount(): Int {
         return messageList.size
     }
@@ -129,11 +130,13 @@ class MessageAdapter(
     class SendViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val sendMessage: TextView = itemView.findViewById(R.id.send_message_text)
         val sendTime: TextView = itemView.findViewById(R.id.send_message_time)
+        val sendUserName: TextView = itemView.findViewById(R.id.send_user_name)
     }
 
     class ReceiveViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val receiveMessage: TextView = itemView.findViewById(R.id.receive_message_text)
         val receiveTime: TextView = itemView.findViewById(R.id.receive_message_time)
+        val receiveUserName: TextView = itemView.findViewById(R.id.receive_user_name)
     }
 
     class SendImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
