@@ -165,6 +165,7 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
+    // 파일 업로드 로직
     private fun uploadFileToFirebaseStorage(fileUri: Uri) {
         val currentDate = SimpleDateFormat("yyyyMMdd").format(Date())
         val storagePath = "/$currentDate/$senderRoom/${loggedInUser.uId}/${fileUri.lastPathSegment}"
@@ -174,11 +175,17 @@ class ChatActivity : AppCompatActivity() {
             storageRef.downloadUrl.addOnSuccessListener { uri ->
                 val fileUrl = uri.toString()
 
-                // 파일 URL을 채팅 메시지로 보내기
+                // 파일의 MIME 타입을 확인하여 이미지인지 일반 파일인지 구분
+                val fileType = contentResolver.getType(fileUri)
                 val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
                     timeZone = TimeZone.getTimeZone("Asia/Seoul")
                 }.format(System.currentTimeMillis())
-                val messageObject = Message("", loggedInUser.uId, currentTime, fileUrl)
+
+                val messageObject = if (fileType?.startsWith("image/") == true) {
+                    Message("", loggedInUser.uId, currentTime, imageUrl = fileUrl)
+                } else {
+                    Message("", loggedInUser.uId, currentTime, fileUrl = fileUrl)
+                }
 
                 mDbRef.child("chats").child(senderRoom).child("messages").push()
                     .setValue(messageObject).addOnSuccessListener {

@@ -1,11 +1,13 @@
 package com.example.polychat
 
+import android.app.Activity
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.firebase.ui.storage.images.FirebaseImageLoader
@@ -65,20 +67,47 @@ class MessageAdapter(
             }
 
             is SendImageViewHolder -> {
-                val storageReference =
-                    FirebaseStorage.getInstance().getReferenceFromUrl(currentMessage.imageUrl!!)
-                Glide.with(context)
-                    .load(storageReference)
-                    .into(holder.sendImage)
+                val imageUrl = currentMessage.imageUrl
+                val fileUrl = currentMessage.fileUrl
+
+                if (imageUrl != null) {
+                    val storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+                    Glide.with(context)
+                        .load(storageReference)
+                        .into(holder.sendImage)
+                } else if (fileUrl != null) {
+                    val fileType = (context as? Activity)?.contentResolver?.getType(fileUrl.toUri())
+                    val fileIcon = when {
+                        fileType?.startsWith("audio/") == true -> R.drawable.baseline_audio_file_24
+                        fileType?.startsWith("video/") == true -> R.drawable.baseline_video_file_24
+                        fileType?.startsWith("text/") == true -> R.drawable.baseline_text_snippet_24
+                        else -> R.drawable.baseline_insert_drive_file_24
+                    }
+                    holder.sendImage.setImageResource(fileIcon)
+                }
             }
 
             is ReceiveImageViewHolder -> {
-                val storageReference =
-                    FirebaseStorage.getInstance().getReferenceFromUrl(currentMessage.imageUrl!!)
-                Glide.with(context)
-                    .load(storageReference)
-                    .into(holder.receiveImage)
+                val imageUrl = currentMessage.imageUrl
+                val fileUrl = currentMessage.fileUrl
+
+                if (imageUrl != null) {
+                    val storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+                    Glide.with(context)
+                        .load(storageReference)
+                        .into(holder.receiveImage)
+                } else if (fileUrl != null) {
+                    val fileType = (context as? Activity)?.contentResolver?.getType(fileUrl.toUri())
+                    val fileIcon = when {
+                        fileType?.startsWith("audio/") == true -> R.drawable.baseline_audio_file_24
+                        fileType?.startsWith("video/") == true -> R.drawable.baseline_video_file_24
+                        fileType?.startsWith("text/") == true -> R.drawable.baseline_text_snippet_24
+                        else -> R.drawable.baseline_insert_drive_file_24
+                    }
+                    holder.receiveImage.setImageResource(fileIcon)
+                }
             }
+
         }
     }
 
