@@ -35,9 +35,9 @@ class WriteActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_write)
 
-        val stuName = intent.getStringExtra("stuName")
+        val stuName = intent.getStringExtra("stuName")  //never used
         val department = intent.getStringExtra("department") ?: ""
-        val stuNum = intent.getStringExtra("stuNum")
+        val stuNum = intent.getStringExtra("stuNum")    //never used
         val uId = intent.getStringExtra("uId")
         Log.d("WriteActivity", "BoardActivity에서 받은 uId값 : $uId")
 
