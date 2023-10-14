@@ -1,18 +1,30 @@
 package com.example.polychat
 
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -28,6 +40,8 @@ class PostDetailActivity : AppCompatActivity() {
     private lateinit var deleteButton: Button
     private lateinit var backButton: Button
     private lateinit var databaseReference: DatabaseReference
+    private lateinit var filePreview: ImageView
+    private lateinit var downloadButton: ImageButton
     private var postUID: String? = null
     private var userUID: String? = null
     private var noticechk: Int = 0  // 기본값은 0으로 설정
@@ -49,6 +63,8 @@ class PostDetailActivity : AppCompatActivity() {
         editButton = findViewById(R.id.edit_button)
         deleteButton = findViewById(R.id.delete_button)
         backButton = findViewById(R.id.back_button)
+        filePreview = findViewById(R.id.file_preview)
+        downloadButton = findViewById(R.id.download_button)
 
         databaseReference = FirebaseDatabase.getInstance().getReference("post")
 
@@ -100,6 +116,22 @@ class PostDetailActivity : AppCompatActivity() {
                         contentLabel.tag = it.department // 학과 정보를 tag에 저장
                         noticechk = it.noticechk
 
+                        // 첨부된 파일의 URL을 사용하여 미리보기 및 다운로드 버튼 설정
+                        it.fileUrl?.let { fileUrl ->
+                            // Glide를 사용하여 이미지 로드
+                            Glide.with(this@PostDetailActivity)
+                                .load(fileUrl)
+                                .into(filePreview)
+                            filePreview.visibility = View.VISIBLE
+
+                            downloadButton.visibility = View.VISIBLE
+                            downloadButton.setOnClickListener {
+                                downloadFile(fileUrl)
+                            }
+                        } ?: run {
+                            downloadButton.visibility = View.GONE
+                        }
+
                         // postUID가 userUID와 동일하면 편집 및 삭제 버튼을 표시
                         if (it.uid == userUID) {
                             editButton.visibility = View.VISIBLE
@@ -120,6 +152,46 @@ class PostDetailActivity : AppCompatActivity() {
         }
         this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
     }
+
+    // 파일 다운로드 함수
+    private fun downloadFile(fileUrl: String) {
+        val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val uri = Uri.parse(fileUrl)
+        val request = DownloadManager.Request(uri)
+
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val fileName = uri.lastPathSegment ?: "downloaded_file"
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
+                put(MediaStore.Downloads.IS_PENDING, 1)
+            }
+
+            val resolver = contentResolver
+            val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            val downloadUri = resolver.insert(collection, values)
+
+            request.setDestinationUri(downloadUri)
+
+            val downloadId = downloadManager.enqueue(request)
+
+            val onComplete = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    values.clear()
+                    values.put(MediaStore.Downloads.IS_PENDING, 0)
+                    resolver.update(downloadUri!!, values, null, null)
+                    context?.unregisterReceiver(this)
+                }
+            }
+
+            registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        } else {
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.lastPathSegment)
+            downloadManager.enqueue(request)
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return super.onCreateOptionsMenu(menu)

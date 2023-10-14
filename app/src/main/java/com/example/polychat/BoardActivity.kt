@@ -58,8 +58,9 @@ class BoardActivity : AppCompatActivity() {
                             val content = postSnapshot.child("content").getValue(String::class.java) ?: ""
                             val uid = postSnapshot.child("uid").getValue(String::class.java) ?: ""
                             val noticechk = postSnapshot.child("noticechk").getValue(Long::class.java)?.toInt() ?: 0
+                            val fileUrl = postSnapshot.child("fileUrl").getValue(String::class.java)  // fileUrl 불러오기
 
-                            val post = Post(title, content, uid, noticechk, department, postSnapshot.key)  // postSnapshot.key를 사용하여 postId 값을 설정
+                            val post = Post(title, content, uid, noticechk, department, postSnapshot.key, fileUrl)  // postSnapshot.key를 사용하여 postId 값을 설정 및 fileUrl 추가
                             if (noticechk == 1) {
                                 noticeList.add(post)
                             } else {
@@ -82,6 +83,7 @@ class BoardActivity : AppCompatActivity() {
                 Toast.makeText(this@BoardActivity, "게시물 불러오기 중 오류 발생: ${error.message}", Toast.LENGTH_SHORT).show()
             }
         })
+
 
         toggleNoticeIcon.setOnClickListener {
             if (noticeListView.visibility == View.VISIBLE) {

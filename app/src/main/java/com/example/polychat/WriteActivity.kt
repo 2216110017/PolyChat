@@ -1,6 +1,8 @@
 package com.example.polychat
 
+import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -8,14 +10,18 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.launch
 
 class WriteActivity : AppCompatActivity() {
@@ -24,6 +30,26 @@ class WriteActivity : AppCompatActivity() {
     private lateinit var contentEditText: EditText
     private lateinit var noticeCheckbox: CheckBox
     private lateinit var databaseReference: DatabaseReference
+    private lateinit var storageReference: StorageReference
+    private val FILE_PICKER_REQUEST_CODE = 1001
+    private var uploadedFileUri: Uri? = null
+    private val filePickerActivityResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val selectedFileUri = result.data?.data
+            val fileReference = storageReference.child(System.currentTimeMillis().toString())
+            val uploadTask = fileReference.putFile(selectedFileUri!!)
+            uploadTask.addOnSuccessListener {
+                fileReference.downloadUrl.addOnSuccessListener { uri ->
+                    uploadedFileUri = uri  // uri 값을 uploadedFileUri 변수에 저장
+                }
+            }.addOnFailureListener {
+                Toast.makeText(this, "파일 업로드 실패: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -35,9 +61,7 @@ class WriteActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_write)
 
-        val stuName = intent.getStringExtra("stuName")  //never used
         val department = intent.getStringExtra("department") ?: ""
-        val stuNum = intent.getStringExtra("stuNum")    //never used
         val uId = intent.getStringExtra("uId")
         Log.d("WriteActivity", "BoardActivity에서 받은 uId값 : $uId")
 
@@ -56,7 +80,15 @@ class WriteActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val post = Post(title, content, uid = uId, noticechk = noticechk, department = department)
+            // Post 객체 생성 시, fileUrl 필드에 uploadedFileUri 값을 할당합니다.
+            val post = Post(
+                title = title,
+                content = content,
+                uid = uId,
+                noticechk = noticechk,
+                department = department,
+                fileUrl = uploadedFileUri?.toString()
+            )
             val postKey = databaseReference.push().key  // 고유한 키 생성
             if (postKey != null) {
                 databaseReference.child(postKey).setValue(post)
@@ -72,7 +104,15 @@ class WriteActivity : AppCompatActivity() {
             }
         }
 
+        storageReference = FirebaseStorage.getInstance().getReference("uploads")
+        findViewById<ImageButton>(R.id.attach_btn).setOnClickListener {
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "*/*"
+            filePickerActivityResultLauncher.launch(intent)
+        }
+
         this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
+
 
     }
 
@@ -85,6 +125,7 @@ class WriteActivity : AppCompatActivity() {
             .setNegativeButton("취소", null)
             .show()
     }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return super.onCreateOptionsMenu(menu)

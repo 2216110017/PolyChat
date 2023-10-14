@@ -23,15 +23,16 @@ data class Message(
     var fileName: String? = null,
     var fileUrl: String? = null,
     var fileType: String? = null
-){
-    constructor():this(
-        "",
-        "",
-        "",
-        null,
-        "",
-        null,
-        null,
-        null,
-        null)
-}
+)
+//){
+//    constructor():this(
+//        "",
+//        "",
+//        "",
+//        null,
+//        "",
+//        null,
+//        null,
+//        null,
+//        null)
+//}
