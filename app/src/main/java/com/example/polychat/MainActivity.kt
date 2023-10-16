@@ -44,12 +44,8 @@ class MainActivity : AppCompatActivity() {
         adapter = UserAdapter(this, userList)
         binding.userRecycelrView.layoutManager = LinearLayoutManager(this)
         binding.userRecycelrView.adapter = adapter
-//        // intent에서 사용자 세부정보 가져오기
-//        val stuName = intent.getStringExtra("stuName")
-//        val department = intent.getStringExtra("department")
-//        val stuNum = intent.getStringExtra("stuNum")
-//        val uId = intent.getStringExtra("uId")
-//
+
+
         // 로그인된 사용자 정보 가져오기
         lifecycleScope.launch {
             val stuName = dataStore.data.map { preferences ->
@@ -82,21 +78,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-//        mDbRef.child("user").addValueEventListener(object:ValueEventListener{
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                for(postSnapshot in snapshot.children){
-//                    val currentUser = postSnapshot.getValue(User::class.java)
-//                    if(loggedInUser.uId != currentUser?.uId){
-//                        userList.add(currentUser!!)
-//                    }
-//                }
-//                adapter.notifyDataSetChanged()
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                // Handle error
-//            }
-//        })
     }
 
     private fun fetchUsersByDepartment(department: String) {

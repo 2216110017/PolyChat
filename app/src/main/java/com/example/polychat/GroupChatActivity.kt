@@ -1,9 +1,13 @@
 package com.example.polychat
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -14,21 +18,27 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.regions.Regions
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
+import com.amazonaws.regions.Region
+import com.amazonaws.services.s3.AmazonS3Client
 import com.example.polychat.databinding.ActivityGroupChatBinding
 import com.google.firebase.database.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
-import com.google.firebase.storage.FirebaseStorage
-import java.util.Date
-
 
 class GroupChatActivity : AppCompatActivity() {
 
     private lateinit var receiverName: String
+    private lateinit var chatName: String
     private lateinit var receiverUid: String
     private lateinit var binding: ActivityGroupChatBinding
     private lateinit var mDbRef: DatabaseReference
@@ -36,8 +46,8 @@ class GroupChatActivity : AppCompatActivity() {
     private lateinit var senderRoom: String
     private lateinit var loggedInUser: User
     private lateinit var messageList: ArrayList<Message>
+
     private var isUserInitialized = false // loggedInUser가 초기화되었는지 확인하는 변수
-    private val REQUEST_CODE_FILE_PICKER = 1001
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -49,7 +59,7 @@ class GroupChatActivity : AppCompatActivity() {
         if (result.resultCode == Activity.RESULT_OK) {
             val fileUri = result.data?.data
             fileUri?.let {
-                uploadFileToFirebaseStorage(it)
+                uploadFileToAWSS3(it)
             }
         }
     }
@@ -88,7 +98,6 @@ class GroupChatActivity : AppCompatActivity() {
 
         val messageAdapter = MessageAdapter(this, messageList, loggedInUser.uId)
 
-
         binding.chatRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.chatRecyclerView.adapter = messageAdapter
 
@@ -98,11 +107,13 @@ class GroupChatActivity : AppCompatActivity() {
         mDbRef = FirebaseDatabase.getInstance().reference
 
         val senderUid = loggedInUser.uId
-
         senderRoom = receiverUid + senderUid
         receiverRoom = senderUid + receiverUid
 
-        supportActionBar?.title = receiverName
+        chatName = loggedInUser.department
+//        val chatTopNameTextView: TextView = findViewById(R.id.Chat_textView_topName)
+//        chatTopNameTextView.text = chatName
+        binding.GroupChatTextViewTopName.text = chatName
 
         //메시지 전송 버튼 이벤트
         binding.sendBtn.setOnClickListener {
@@ -112,7 +123,6 @@ class GroupChatActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val message = binding.messageEdit.text.toString()
-//            val messageObject = Message(message, loggedInUser.uId)
             val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
                 timeZone = TimeZone.getTimeZone("Asia/Seoul")
             }.format(System.currentTimeMillis())
@@ -156,37 +166,72 @@ class GroupChatActivity : AppCompatActivity() {
         this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_FILE_PICKER && resultCode == Activity.RESULT_OK) {
-            val fileUri = data?.data
-            fileUri?.let {
-                uploadFileToFirebaseStorage(it)
-            }
+    private fun uploadFileToAWSS3(fileUri: Uri) {
+        // AWS 자격 증명 및 S3 클라이언트 초기화
+        val credentials = BasicAWSCredentials("AKIAU64OPUVYX5RFXHJ2", "5HYf1qg0uhDoqLNVgEAka7aFBprEFetdrkdkJgRV")
+        val s3Client = AmazonS3Client(credentials, Region.getRegion(Regions.AP_NORTHEAST_2))
+
+        // 실제 파일 경로 가져오기
+        val realPath = getPathFromUri(applicationContext, fileUri)
+        if (realPath == null) {
+            Log.e("GroupChatActivity", "URI에서 실제 경로를 가져오지 못했습니다.: $fileUri")
+            return
         }
+        val file = File(realPath)
+
+        // TransferUtility 초기화
+        val transferUtility = TransferUtility.builder()
+            .context(applicationContext)
+            .s3Client(s3Client)
+            .build()
+
+        val uploadObserver = transferUtility.upload(
+            "aws-s3-bucket-2216110017",
+            fileUri.lastPathSegment,
+            file
+        )
+
+        uploadObserver.setTransferListener(object : TransferListener {
+            override fun onStateChanged(id: Int, state: TransferState) {
+                if (state == TransferState.COMPLETED) {
+                    // 업로드 완료 후 파일 URL 가져오기
+                    val fileUrl = s3Client.getResourceUrl("aws-s3-bucket-2216110017", fileUri.lastPathSegment)
+
+                    // 파일 URL을 채팅 메시지로 보내기
+                    val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
+                        timeZone = TimeZone.getTimeZone("Asia/Seoul")
+                    }.format(System.currentTimeMillis())
+                    val messageObject = Message("", loggedInUser.uId, currentTime, fileUrl)
+
+                    mDbRef.child("chats").child(senderRoom).child("messages").push()
+                        .setValue(messageObject).addOnSuccessListener {
+                            mDbRef.child("chats").child(receiverRoom).child("messages").push()
+                                .setValue(messageObject)
+                        }
+                }
+            }
+
+            override fun onProgressChanged(id: Int, bytesCurrent: Long, bytesTotal: Long) {
+                // 업로드 진행률 업데이트 (선택 사항)
+            }
+
+            override fun onError(id: Int, ex: Exception) {
+                // 업로드 중 오류 발생
+                Log.e("GroupChat_S3_업로드_에러", "업로드 중 에러: $id", ex)
+            }
+        })
     }
 
-    private fun uploadFileToFirebaseStorage(fileUri: Uri) {
-        val currentDate = SimpleDateFormat("yyyyMMdd").format(Date())
-        val storagePath = "/$currentDate/$senderRoom/${loggedInUser.uId}/${fileUri.lastPathSegment}"
-        val storageRef = FirebaseStorage.getInstance().getReference(storagePath)
-
-        storageRef.putFile(fileUri).addOnSuccessListener {
-            storageRef.downloadUrl.addOnSuccessListener { uri ->
-                val fileUrl = uri.toString()
-
-                // 파일 URL을 채팅 메시지로 보내기
-                val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
-                    timeZone = TimeZone.getTimeZone("Asia/Seoul")
-                }.format(System.currentTimeMillis())
-                val messageObject = Message("", loggedInUser.uId, currentTime, fileUrl)
-
-                mDbRef.child("chats").child(senderRoom).child("messages").push()
-                    .setValue(messageObject).addOnSuccessListener {
-                        mDbRef.child("chats").child(receiverRoom).child("messages").push()
-                            .setValue(messageObject)
-                    }
-            }
+    private fun getPathFromUri(context: Context, uri: Uri): String? {
+        var cursor: Cursor? = null
+        try {
+            val proj = arrayOf(MediaStore.Images.Media.DATA)
+            cursor = context.contentResolver.query(uri, proj, null, null, null)
+            val columnIndex = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            cursor?.moveToFirst()
+            return cursor?.getString(columnIndex!!)
+        } finally {
+            cursor?.close()
         }
     }
 

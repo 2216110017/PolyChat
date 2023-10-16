@@ -2,6 +2,7 @@ package com.example.polychat
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,8 +11,6 @@ import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.firebase.ui.storage.images.FirebaseImageLoader
-import com.google.firebase.storage.FirebaseStorage
 
 class MessageAdapter(
     private val context: Context,
@@ -71,12 +70,16 @@ class MessageAdapter(
                 val fileUrl = currentMessage.fileUrl
 
                 if (imageUrl != null) {
-                    val storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
-                    Glide.with(context)
-                        .load(storageReference)
+                    Log.d("보낸 이미지 로딩", "URL에서 이미지 로드 중: $imageUrl")
+                    Glide
+                        .with(context)
+                        .load(imageUrl) // AWS S3 URL을 직접 사용
+                        .error(R.drawable.baseline_error_24)
                         .into(holder.sendImage)
                 } else if (fileUrl != null) {
                     val fileType = (context as? Activity)?.contentResolver?.getType(fileUrl.toUri())
+                    Log.d("보낸 파일 로딩", "URL에서 파일 로드 중: $fileUrl")
+
                     val fileIcon = when {
                         fileType?.startsWith("audio/") == true -> R.drawable.baseline_audio_file_24
                         fileType?.startsWith("video/") == true -> R.drawable.baseline_video_file_24
@@ -92,12 +95,15 @@ class MessageAdapter(
                 val fileUrl = currentMessage.fileUrl
 
                 if (imageUrl != null) {
-                    val storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
-                    Glide.with(context)
-                        .load(storageReference)
+                    Log.d("받은 이미지 로딩", "URL에서 이미지 로드 중: $imageUrl")
+                    Glide
+                        .with(context)
+                        .load(imageUrl) // AWS S3 URL을 직접 사용
+                        .error(R.drawable.baseline_error_24)
                         .into(holder.receiveImage)
                 } else if (fileUrl != null) {
                     val fileType = (context as? Activity)?.contentResolver?.getType(fileUrl.toUri())
+                    Log.d("받은 파일 로딩", "URL에서 파일 로드 중: $imageUrl")
                     val fileIcon = when {
                         fileType?.startsWith("audio/") == true -> R.drawable.baseline_audio_file_24
                         fileType?.startsWith("video/") == true -> R.drawable.baseline_video_file_24
