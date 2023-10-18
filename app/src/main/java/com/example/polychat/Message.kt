@@ -22,16 +22,7 @@ data class Message(
     var imageUrl: String? = null,
     var fileName: String? = null,
     var fileUrl: String? = null,
-    var fileType: String? = null
+    var messageType: String = "text"
 ){
-    constructor():this(
-        "",
-        "",
-        "",
-        null,
-        "",
-        null,
-        null,
-        null,
-        null)
+    constructor():this("", "", "", null, "", null, null, null, )
 }
