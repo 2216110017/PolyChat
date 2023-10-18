@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "706129105744",
+    "firebase_url": "https://polychat-1f78d-default-rtdb.firebaseio.com",
     "project_id": "polychat-1f78d",
     "storage_bucket": "polychat-1f78d.appspot.com"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.polychat"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "706129105744-s4pc9lr4k4h5ppepsq2jfsua5u6fhh90.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.polychat",
+            "certificate_hash": "8be3531314f0d15098f1d0606a31aeac15c1b354"
+          }
+        },
+        {
+          "client_id": "706129105744-0oqsgl5f0n7eib7r6hrqqcah7hsqad2v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA0BQWJU3xdljuS6eN9oRcAzfgizfOdCgY"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "706129105744-0oqsgl5f0n7eib7r6hrqqcah7hsqad2v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

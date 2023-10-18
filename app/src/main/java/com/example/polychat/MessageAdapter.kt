@@ -1,16 +1,11 @@
 package com.example.polychat
 
-import android.app.Activity
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.google.firebase.storage.FirebaseStorage
 
 class MessageAdapter(
     private val context: Context,
@@ -24,6 +19,7 @@ class MessageAdapter(
     private val RECEIVE_IMAGE = 4
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+
         return when (viewType) {
             RECEIVE -> {
                 val view: View =
@@ -34,18 +30,6 @@ class MessageAdapter(
             SEND -> {
                 val view: View = LayoutInflater.from(context).inflate(R.layout.send, parent, false)
                 SendViewHolder(view)
-            }
-
-            SEND_IMAGE -> {
-                val view: View =
-                    LayoutInflater.from(context).inflate(R.layout.send_image, parent, false)
-                SendImageViewHolder(view)
-            }
-
-            RECEIVE_IMAGE -> {
-                val view: View =
-                    LayoutInflater.from(context).inflate(R.layout.receive_image, parent, false)
-                ReceiveImageViewHolder(view)
             }
 
             else -> throw IllegalArgumentException("Invalid view type")
@@ -65,48 +49,6 @@ class MessageAdapter(
                 holder.receiveMessage.text = currentMessage.message
                 holder.receiveTime.text = currentMessage.sentTime
                 holder.receiveUserName.text = currentMessage.userName
-            }
-
-            is SendImageViewHolder -> {
-                val imageUrl = currentMessage.imageUrl
-                val fileUrl = currentMessage.fileUrl
-
-                if (imageUrl != null) {
-                    val storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
-                    Glide.with(context)
-                        .load(storageReference)
-                        .into(holder.sendImage)
-                } else if (fileUrl != null) {
-                    val fileType = (context as? Activity)?.contentResolver?.getType(fileUrl.toUri())
-                    val fileIcon = when {
-                        fileType?.startsWith("audio/") == true -> R.drawable.baseline_audio_file_24
-                        fileType?.startsWith("video/") == true -> R.drawable.baseline_video_file_24
-                        fileType?.startsWith("text/") == true -> R.drawable.baseline_text_snippet_24
-                        else -> R.drawable.baseline_insert_drive_file_24
-                    }
-                    holder.sendImage.setImageResource(fileIcon)
-                }
-            }
-
-            is ReceiveImageViewHolder -> {
-                val imageUrl = currentMessage.imageUrl
-                val fileUrl = currentMessage.fileUrl
-
-                if (imageUrl != null) {
-                    val storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
-                    Glide.with(context)
-                        .load(storageReference)
-                        .into(holder.receiveImage)
-                } else if (fileUrl != null) {
-                    val fileType = (context as? Activity)?.contentResolver?.getType(fileUrl.toUri())
-                    val fileIcon = when {
-                        fileType?.startsWith("audio/") == true -> R.drawable.baseline_audio_file_24
-                        fileType?.startsWith("video/") == true -> R.drawable.baseline_video_file_24
-                        fileType?.startsWith("text/") == true -> R.drawable.baseline_text_snippet_24
-                        else -> R.drawable.baseline_insert_drive_file_24
-                    }
-                    holder.receiveImage.setImageResource(fileIcon)
-                }
             }
 
         }
@@ -136,14 +78,5 @@ class MessageAdapter(
         val receiveMessage: TextView = itemView.findViewById(R.id.receive_message_text)
         val receiveTime: TextView = itemView.findViewById(R.id.receive_message_time)
         val receiveUserName: TextView = itemView.findViewById(R.id.receive_user_name)
-    }
-
-    class SendImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val sendImage: ImageView = itemView.findViewById(R.id.send_image_view)
-        // 필요한 경우 추가 뷰 바인딩
-    }
-
-    class ReceiveImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val receiveImage: ImageView = itemView.findViewById(R.id.receive_image_view)
     }
 }

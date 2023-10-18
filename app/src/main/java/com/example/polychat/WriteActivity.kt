@@ -18,8 +18,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.initialize
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.launch
@@ -31,7 +35,6 @@ class WriteActivity : AppCompatActivity() {
     private lateinit var noticeCheckbox: CheckBox
     private lateinit var databaseReference: DatabaseReference
     private lateinit var storageReference: StorageReference
-    private val FILE_PICKER_REQUEST_CODE = 1001
     private var uploadedFileUri: Uri? = null
     private val filePickerActivityResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -50,7 +53,6 @@ class WriteActivity : AppCompatActivity() {
         }
     }
 
-
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             finish()            // 뒤로가기 시 실행할 코드
@@ -60,6 +62,11 @@ class WriteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_write)
+
+        Firebase.initialize(context = this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            DebugAppCheckProviderFactory.getInstance(),
+        )
 
         val department = intent.getStringExtra("department") ?: ""
         val uId = intent.getStringExtra("uId")
