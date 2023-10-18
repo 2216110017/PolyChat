@@ -6,22 +6,30 @@
     android:padding="8dp">
 
     <TextView
+        android:id="@+id/send_user_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="이름"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <ImageView
+        android:id="@+id/send_file_icon_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="5dp"
+        android:padding="10dp"
+        android:adjustViewBounds="true"
+        app:layout_constraintEnd_toStartOf="@+id/send_user_name"
+        app:layout_constraintBottom_toBottomOf="@+id/send_user_name"/>
+
+    <TextView
         android:id="@+id/send_file_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="12:34 PM"
         android:textSize="12sp"
-        app:layout_constraintEnd_toStartOf="@id/send_file_text"
-        app:layout_constraintBottom_toBottomOf="@id/send_file_text" />
-
-    <TextView
-        android:id="@+id/send_file_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:text="파일명"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/send_file_icon_view"
+        app:layout_constraintBottom_toBottomOf="@id/send_user_name" />
 </androidx.constraintlayout.widget.ConstraintLayout>

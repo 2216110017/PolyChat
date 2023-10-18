@@ -1,5 +1,6 @@
 package com.example.polychat
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -23,11 +24,11 @@ import com.google.firebase.ktx.initialize
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 import com.google.firebase.storage.FirebaseStorage
 import java.util.Date
+import java.text.SimpleDateFormat as SimpleDateFormat1
 
 
 class GroupChatActivity : AppCompatActivity() {
@@ -36,8 +37,6 @@ class GroupChatActivity : AppCompatActivity() {
     private lateinit var receiverUid: String
     private lateinit var binding: ActivityGroupChatBinding
     private lateinit var mDbRef: DatabaseReference
-//    private lateinit var receiverRoom: String
-//    private lateinit var senderRoom: String
     private lateinit var groupSenderRoom: String
     private lateinit var loggedInUser: User
     private lateinit var messageList: ArrayList<Message>
@@ -92,9 +91,8 @@ class GroupChatActivity : AppCompatActivity() {
 
             loggedInUser = User(stuName, stuNum, department, email, phone, uId)
             isUserInitialized = true
-            groupSenderRoom = loggedInUser.department
         }
-
+        groupSenderRoom = loggedInUser.department
         messageList = ArrayList()
 
         val messageAdapter = MessageAdapter(this, messageList, loggedInUser.uId)
@@ -108,11 +106,6 @@ class GroupChatActivity : AppCompatActivity() {
         receiverUid = intent.getStringExtra("uId").toString()
 
         mDbRef = FirebaseDatabase.getInstance().reference
-
-        val senderUid = loggedInUser.uId
-
-//        senderRoom = receiverUid + senderUid
-//        receiverRoom = senderUid + receiverUid
 
         supportActionBar?.title = receiverName
 
@@ -131,14 +124,11 @@ class GroupChatActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
+            val currentTime = SimpleDateFormat1("a h:mm", Locale.KOREA).apply {
                 timeZone = TimeZone.getTimeZone("Asia/Seoul")
             }.format(System.currentTimeMillis())
 
             val messageObject = Message(message, loggedInUser.uId, currentTime)
-            // 학과 이름을 groupSenderRoom 저장
-            groupSenderRoom = loggedInUser.department
-
             mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
                 .setValue(messageObject)
 
@@ -184,6 +174,7 @@ class GroupChatActivity : AppCompatActivity() {
         this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_FILE_PICKER && resultCode == Activity.RESULT_OK) {
@@ -194,26 +185,31 @@ class GroupChatActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun uploadFileToFirebaseStorage(fileUri: Uri) {
-        val currentDate = SimpleDateFormat("yyyyMMdd").format(Date())
-        val storagePath = "/$currentDate/$groupSenderRoom/${loggedInUser.uId}/${fileUri.lastPathSegment}"
+        val currentDate = SimpleDateFormat1("yyyyMMdd").format(Date())
+        val storagePath = "/$currentDate/$groupSenderRoom/${fileUri.lastPathSegment}"
         val storageRef = FirebaseStorage.getInstance().getReference(storagePath)
 
         storageRef.putFile(fileUri).addOnSuccessListener {
             storageRef.downloadUrl.addOnSuccessListener { uri ->
                 val fileUrl = uri.toString()
 
-                // 파일 URL을 채팅 메시지로 보내기
-                val currentTime = SimpleDateFormat("a h:mm", Locale.KOREA).apply {
+                // 파일의 MIME 타입을 확인하여 이미지인지 일반 파일인지 구분
+                val fileType = contentResolver.getType(fileUri)
+                val currentTime = SimpleDateFormat1("a h:mm", Locale.KOREA).apply {
                     timeZone = TimeZone.getTimeZone("Asia/Seoul")
                 }.format(System.currentTimeMillis())
-                val messageObject = Message("", loggedInUser.uId, currentTime, fileUrl)
-
-                mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
-                    .setValue(messageObject).addOnSuccessListener {
-                        mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
-                            .setValue(messageObject)
+                val messageObject = when {
+                    fileType?.startsWith("image/") == true -> {
+                        Message("", loggedInUser.uId, currentTime, imageUrl = fileUrl, messageType = "image")
                     }
+                    else -> {
+                        Message("", loggedInUser.uId, currentTime, fileUrl = fileUrl, messageType = "file")
+                    }
+                }
+                mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
+                    .setValue(messageObject)
             }
         }
     }

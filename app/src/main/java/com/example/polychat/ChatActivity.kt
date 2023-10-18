@@ -122,7 +122,7 @@ class ChatActivity : AppCompatActivity() {
                 timeZone = TimeZone.getTimeZone("Asia/Seoul")
             }.format(System.currentTimeMillis())
 
-            val messageObject = Message(message, loggedInUser.uId, currentTime)
+            val messageObject = Message(message,loggedInUser.uId, currentTime)
 
             mDbRef.child("chats").child(senderRoom).child("messages").push()
                 .setValue(messageObject).addOnSuccessListener {
@@ -145,7 +145,6 @@ class ChatActivity : AppCompatActivity() {
                     // RecyclerView를 최하단으로 스크롤
                     binding.chatRecyclerView.scrollToPosition(messageList.size - 1)
                 }
-
 
                 override fun onCancelled(error: DatabaseError) {
                     // Handle error
@@ -187,10 +186,13 @@ class ChatActivity : AppCompatActivity() {
                     timeZone = TimeZone.getTimeZone("Asia/Seoul")
                 }.format(System.currentTimeMillis())
 
-                val messageObject = if (fileType?.startsWith("image/") == true) {
-                    Message("", loggedInUser.uId, currentTime, imageUrl = fileUrl)
-                } else {
-                    Message("", loggedInUser.uId, currentTime, fileUrl = fileUrl)
+                val messageObject = when {
+                    fileType?.startsWith("image/") == true -> {
+                        Message("", loggedInUser.uId, currentTime, imageUrl = fileUrl, messageType = "image")
+                    }
+                    else -> {
+                        Message("", loggedInUser.uId, currentTime, fileUrl = fileUrl, messageType = "file")
+                    }
                 }
 
                 mDbRef.child("chats").child(senderRoom).child("messages").push()
