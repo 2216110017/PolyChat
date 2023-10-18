@@ -13,8 +13,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.initialize
 import kotlinx.coroutines.launch
 
 class PostEditActivity : AppCompatActivity() {
@@ -38,11 +42,13 @@ class PostEditActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_post_edit)
 
+        Firebase.initialize(context = this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            DebugAppCheckProviderFactory.getInstance(),
+        )
+
         // Intent에서 게시글 정보와 사용자 정보 가져오기
         postUID = intent.getStringExtra("post_uid")
-//        postTitle = intent.getStringExtra("post_title")
-//        postContent = intent.getStringExtra("post_content")
-//        userUID = intent.getStringExtra("user_uid")
         department = intent.getStringExtra("department") ?: ""
 
 

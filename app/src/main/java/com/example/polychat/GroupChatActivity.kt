@@ -15,7 +15,11 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.polychat.databinding.ActivityGroupChatBinding
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.database.*
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.initialize
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -32,9 +36,8 @@ class GroupChatActivity : AppCompatActivity() {
     private lateinit var receiverUid: String
     private lateinit var binding: ActivityGroupChatBinding
     private lateinit var mDbRef: DatabaseReference
-    private lateinit var receiverRoom: String
-    private lateinit var groupReceiverRoom: String
-    private lateinit var senderRoom: String
+//    private lateinit var receiverRoom: String
+//    private lateinit var senderRoom: String
     private lateinit var groupSenderRoom: String
     private lateinit var loggedInUser: User
     private lateinit var messageList: ArrayList<Message>
@@ -60,6 +63,11 @@ class GroupChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityGroupChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        Firebase.initialize(context = this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            DebugAppCheckProviderFactory.getInstance(),
+        )
 
         // 로그인된 사용자 정보 가져오기
         lifecycleScope.launch {
@@ -103,8 +111,8 @@ class GroupChatActivity : AppCompatActivity() {
 
         val senderUid = loggedInUser.uId
 
-        senderRoom = receiverUid + senderUid
-        receiverRoom = senderUid + receiverUid
+//        senderRoom = receiverUid + senderUid
+//        receiverRoom = senderUid + receiverUid
 
         supportActionBar?.title = receiverName
 
@@ -203,7 +211,7 @@ class GroupChatActivity : AppCompatActivity() {
 
                 mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
                     .setValue(messageObject).addOnSuccessListener {
-                        mDbRef.child("chats").child(groupReceiverRoom).child("messages").push()
+                        mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
                             .setValue(messageObject)
                     }
             }

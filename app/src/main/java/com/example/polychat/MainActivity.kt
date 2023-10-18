@@ -12,12 +12,15 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.polychat.databinding.ActivityMainBinding
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.initialize
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -39,17 +42,16 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        Firebase.initialize(context = this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            DebugAppCheckProviderFactory.getInstance(),
+        )
+
         mDbRef = Firebase.database.reference
         userList = ArrayList()
         adapter = UserAdapter(this, userList)
         binding.userRecycelrView.layoutManager = LinearLayoutManager(this)
         binding.userRecycelrView.adapter = adapter
-//        // intent에서 사용자 세부정보 가져오기
-//        val stuName = intent.getStringExtra("stuName")
-//        val department = intent.getStringExtra("department")
-//        val stuNum = intent.getStringExtra("stuNum")
-//        val uId = intent.getStringExtra("uId")
-//
         // 로그인된 사용자 정보 가져오기
         lifecycleScope.launch {
             val stuName = dataStore.data.map { preferences ->
