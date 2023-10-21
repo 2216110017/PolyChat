@@ -2,6 +2,7 @@ package com.example.polychat
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,8 +27,6 @@ class MessageAdapter(
     private val receiveImage = 4
     private val sendFile = 5
     private val receiveFile = 6
-
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
@@ -67,6 +66,8 @@ class MessageAdapter(
             .diskCacheStrategy(DiskCacheStrategy.ALL) // 디스크 캐시 전략 설정
             .error(R.drawable.baseline_image_not_supported_24) // 에러 발생 시 표시될 이미지
             .placeholder(R.drawable.baseline_image_24) // 로딩 중에 표시될 이미지
+            .override(300, 300)
+            .fitCenter()
 
         val currentMessage = messageList[position]
         when (holder) {
@@ -86,20 +87,20 @@ class MessageAdapter(
                     .load(currentMessage.imageUrl)
                     .apply(requestOptions)
                     .transition(DrawableTransitionOptions.withCrossFade()) // 크로스 페이드 애니메이션
-                    //.fitCenter()
                     .into(holder.sendImageView)
                 holder.sendImageTime.text = currentMessage.sentTime
                 holder.sendUserName.text = currentMessage.userName
+                holder.bind(currentMessage)
             }
             is ReceiveImageViewHolder -> {
                 Glide.with(context)
                     .load(currentMessage.imageUrl)
                     .apply(requestOptions)
                     .transition(DrawableTransitionOptions.withCrossFade()) // 크로스 페이드 애니메이션
-                    //.fitCenter()
                     .into(holder.receiveImageView)
                 holder.receiveImageTime.text = currentMessage.sentTime
                 holder.receiveUserName.text = currentMessage.userName
+                holder.bind(currentMessage)
             }
             is SendFileViewHolder -> {
                 holder.sendFileIconView.setImageResource(R.drawable.baseline_insert_drive_file_24)
@@ -144,12 +145,30 @@ class MessageAdapter(
         val sendImageView: ImageView = itemView.findViewById(R.id.send_image_view)
         val sendImageTime: TextView = itemView.findViewById(R.id.send_image_time)
         val sendUserName: TextView = itemView.findViewById(R.id.send_user_name)
+
+        fun bind(message: Message) {
+            sendImageView.setOnClickListener {
+                val intent = Intent(itemView.context, ZoomedImageActivity::class.java)
+                intent.putExtra("IMAGE_URL", message.imageUrl)
+                itemView.context.startActivity(intent)
+            }
+        }
     }
+
     class ReceiveImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val receiveImageView: ImageView = itemView.findViewById(R.id.receive_image_view)
         val receiveImageTime: TextView = itemView.findViewById(R.id.receive_image_time)
         val receiveUserName: TextView = itemView.findViewById(R.id.receive_user_name)
+
+        fun bind(message: Message) {
+            receiveImageView.setOnClickListener {
+                val intent = Intent(itemView.context, ZoomedImageActivity::class.java)
+                intent.putExtra("IMAGE_URL", message.imageUrl)
+                itemView.context.startActivity(intent)
+            }
+        }
     }
+
     class SendFileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val sendFileIconView: ImageView = itemView.findViewById(R.id.send_file_icon_view)
         val sendFileTime: TextView = itemView.findViewById(R.id.send_file_time)

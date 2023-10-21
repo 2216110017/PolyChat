@@ -149,7 +149,7 @@ class LogInActivity : AppCompatActivity() {
 
     // Retrofit 인스턴스 생성
     val retrofit = Retrofit.Builder()
-        .baseUrl("http://192.168.75.166:3000/")
+        .baseUrl("http://39.124.212.86:3000/")
 //        .baseUrl("https://your-server-url.com/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
