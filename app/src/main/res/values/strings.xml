@@ -2,4 +2,6 @@
     <string name="app_name">PolyChat</string>
     <string name="firebase_app_check_debug_token">DEBUG_TOKEN</string>
     <string name="zoomed_image" />
+    <string name="image_preview" />
+    <string name="attach_file_or_image" />
 </resources>
