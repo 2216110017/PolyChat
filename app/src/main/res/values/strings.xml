@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PolyChat</string>
     <string name="firebase_app_check_debug_token">DEBUG_TOKEN</string>
+    <string name="zoomed_image" />
 </resources>
