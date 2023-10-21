@@ -9,10 +9,9 @@
     <ListView
         android:id="@+id/noticeListView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:visibility="visible"
-        android:layout_weight="1"
-        android:background="@color/material_dynamic_neutral_variant95"/>
+        android:layout_weight="1" />
 
     <!-- 공지사항 접기/펼치기를 위한 ImageView 추가 -->
     <ImageView

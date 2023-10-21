@@ -1,27 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:context=".PostEditActivity">
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <LinearLayout
-        android:id="@+id/button_layout"
+    <EditText
+        android:id="@+id/title_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
-        android:gravity="center">
+        android:hint="제목" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/notice_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="공지사항" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/attach_btn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/baseline_add_24"
+            android:contentDescription="@string/attach_file_or_image"/>
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <EditText
+            android:id="@+id/content_edittext"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="내용"
+            android:inputType="textMultiLine" />
+
+        <ImageView
+            android:id="@+id/image_preview"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:contentDescription="@string/image_preview" />
+    </FrameLayout>
+
+    <SeekBar
+        android:id="@+id/image_size_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="400"
+        android:progress="200" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/edit_post_button"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="수정"
-            android:textSize="16sp" />
+            android:layout_weight="1"
+            android:text="수정" />
 
         <View
             android:layout_width="30dp"
@@ -30,48 +83,10 @@
         <Button
             android:id="@+id/back_button"
             android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="뒤로"
-            android:textSize="16sp" />
+            android:text="뒤로" />
+
     </LinearLayout>
+</LinearLayout>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/button_layout">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="16dp">
-
-            <EditText
-                android:id="@+id/title_edittext"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="제목"
-                android:inputType="text"
-                android:padding="8dp"
-                android:textSize="24sp" />
-
-            <CheckBox
-                android:id="@+id/notice_checkbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="공지사항" />
-
-            <EditText
-                android:id="@+id/content_edittext"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="top"
-                android:hint="내용"
-                android:inputType="textMultiLine"
-                android:padding="8dp"
-                android:textSize="16sp" />
-        </LinearLayout>
-    </ScrollView>
-</RelativeLayout>

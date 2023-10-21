@@ -18,6 +18,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -95,6 +96,18 @@ class PostDetailActivity : AppCompatActivity() {
             intent.putExtra("department", contentLabel.tag.toString()) // 학과 정보 추가
             startActivity(intent)
         }
+
+        findViewById<SeekBar>(R.id.image_size_slider).setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                findViewById<ImageView>(R.id.file_preview).layoutParams.height = progress
+                findViewById<ImageView>(R.id.file_preview).requestLayout()  // 레이아웃 업데이트
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
 
         deleteButton.setOnClickListener {
             // Firebase에서 게시물 삭제

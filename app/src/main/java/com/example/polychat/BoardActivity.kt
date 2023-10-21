@@ -84,7 +84,7 @@ class BoardActivity : AppCompatActivity() {
                 val normalAdapter = PostAdapter(this@BoardActivity, normalList)
                 normalListView.adapter = normalAdapter
 
-                val noticeAdapter = PostAdapter(this@BoardActivity, noticeList)
+                val noticeAdapter = NoticePostAdapter(this@BoardActivity, noticeList) // NoticePostAdapter 필요없으면 삭제해야함
                 noticeListView.adapter = noticeAdapter
             }
 

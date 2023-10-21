@@ -11,6 +11,8 @@ import android.view.View
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,19 +38,15 @@ class WriteActivity : AppCompatActivity() {
     private lateinit var databaseReference: DatabaseReference
     private lateinit var storageReference: StorageReference
     private var uploadedFileUri: Uri? = null
-    private val filePickerActivityResultLauncher = registerForActivityResult(
+
+    private val imagePickerActivityResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val selectedFileUri = result.data?.data
-            val fileReference = storageReference.child(System.currentTimeMillis().toString())
-            val uploadTask = fileReference.putFile(selectedFileUri!!)
-            uploadTask.addOnSuccessListener {
-                fileReference.downloadUrl.addOnSuccessListener { uri ->
-                    uploadedFileUri = uri  // uri 값을 uploadedFileUri 변수에 저장
-                }
-            }.addOnFailureListener {
-                Toast.makeText(this, "파일 업로드 실패: ${it.message}", Toast.LENGTH_SHORT).show()
+            val selectedImageUri = result.data?.data
+            findViewById<ImageView>(R.id.image_preview).apply {
+                visibility = View.VISIBLE
+                setImageURI(selectedImageUri)
             }
         }
     }
@@ -111,16 +109,23 @@ class WriteActivity : AppCompatActivity() {
             }
         }
 
-        storageReference = FirebaseStorage.getInstance().getReference("uploads")
         findViewById<ImageButton>(R.id.attach_btn).setOnClickListener {
-            val intent = Intent(Intent.ACTION_GET_CONTENT)
-            intent.type = "*/*"
-            filePickerActivityResultLauncher.launch(intent)
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            imagePickerActivityResultLauncher.launch(intent)
         }
 
+        findViewById<SeekBar>(R.id.image_size_slider).setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                findViewById<ImageView>(R.id.image_preview).layoutParams.height = progress
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
         this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
-
-
     }
 
     private fun showWarningDialog() {
