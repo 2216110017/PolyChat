@@ -18,7 +18,6 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -50,6 +49,7 @@ class PostDetailActivity : AppCompatActivity() {
     private var postUID: String? = null
     private var userUID: String? = null
     private var noticechk: Int = 0  // 기본값은 0으로 설정
+    private var fileUrl: String? = null
 
 
 
@@ -85,6 +85,16 @@ class PostDetailActivity : AppCompatActivity() {
 
         fetchPostDetails()
 
+        filePreview.setOnClickListener {
+            fileUrl?.let { url ->
+                val intent = Intent(this@PostDetailActivity, ZoomedImageActivity::class.java)
+                intent.putExtra("IMAGE_URL", url)
+                startActivity(intent)
+            } ?: run {
+                Toast.makeText(this, "이미지를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         editButton.setOnClickListener {
             val intent = Intent(this@PostDetailActivity, PostEditActivity::class.java)
             // 게시글의 UID, 제목, 내용, 그리고 사용자의 UID를 Intent에 넣기
@@ -96,17 +106,6 @@ class PostDetailActivity : AppCompatActivity() {
             intent.putExtra("department", contentLabel.tag.toString()) // 학과 정보 추가
             startActivity(intent)
         }
-
-        findViewById<SeekBar>(R.id.image_size_slider).setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                findViewById<ImageView>(R.id.file_preview).layoutParams.height = progress
-                findViewById<ImageView>(R.id.file_preview).requestLayout()  // 레이아웃 업데이트
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
 
 
         deleteButton.setOnClickListener {
@@ -128,7 +127,6 @@ class PostDetailActivity : AppCompatActivity() {
                     Log.d("PostDetailActivity", "DataSnapshot 값: ${snapshot.value}")
 
                     val post = snapshot.getValue(Post::class.java)
-
                     // Post 객체로의 변환 후 로그 출력
                     Log.d("PostDetailActivity", "변환된 게시물 객체 Converted Post object: $post")
 
@@ -137,6 +135,7 @@ class PostDetailActivity : AppCompatActivity() {
                         contentLabel.text = it.content
                         contentLabel.tag = it.department // 학과 정보를 tag에 저장
                         noticechk = it.noticechk
+                        fileUrl = it.fileUrl
 
                         // 첨부된 파일의 URL을 사용하여 미리보기 및 다운로드 버튼 설정
                         it.fileUrl?.let { fileUrl ->

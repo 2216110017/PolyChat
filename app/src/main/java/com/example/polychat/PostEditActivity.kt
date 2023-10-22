@@ -18,6 +18,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
@@ -37,9 +39,11 @@ class PostEditActivity : AppCompatActivity() {
     private lateinit var databaseReference: DatabaseReference
     private lateinit var imagePreview: ImageView
     private lateinit var storageReference: StorageReference
+    private lateinit var attachedFilesRecyclerView: RecyclerView
+    private lateinit var attachedFilesAdapter: AttachedFileAdapter
+    private val attachedFiles = ArrayList<Uri>()
 
     private var uploadedFileUri: Uri? = null
-    private var uploadedImageUri: Uri? = null
     private var postUID: String? = null
     private var department: String = ""
 
@@ -57,6 +61,17 @@ class PostEditActivity : AppCompatActivity() {
         Firebase.appCheck.installAppCheckProviderFactory(
             DebugAppCheckProviderFactory.getInstance(),
         )
+
+        attachedFilesAdapter = AttachedFileAdapter(attachedFiles) { uri ->
+            val position = attachedFiles.indexOf(uri)
+            if (position != -1) {
+                attachedFiles.removeAt(position)
+                attachedFilesAdapter.notifyItemRemoved(position)
+            }
+        }
+        attachedFilesRecyclerView = findViewById(R.id.attachedFilesRecyclerView)
+        attachedFilesRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        attachedFilesRecyclerView.adapter = attachedFilesAdapter
 
         // Intent에서 게시글 정보와 사용자 정보 가져오기
         postUID = intent.getStringExtra("post_uid")
@@ -102,22 +117,22 @@ class PostEditActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val selectedFileUri = result.data?.data
-            val fileReference = storageReference.child(System.currentTimeMillis().toString())
-            val uploadTask = fileReference.putFile(selectedFileUri!!)
-            uploadTask.addOnSuccessListener {
-                fileReference.downloadUrl.addOnSuccessListener { uri ->
-                    uploadedFileUri = uri  // uri 값을 uploadedFileUri 변수에 저장
-                    // 이미지 미리보기 로직 추가
-                    Glide.with(this)
-                        .load(uri)
-                        .into(imagePreview)
-                    imagePreview.visibility = View.VISIBLE
-                }
-            }.addOnFailureListener {
-                Toast.makeText(this, "파일 업로드 실패: ${it.message}", Toast.LENGTH_SHORT).show()
+            if (selectedFileUri != null) {
+                // 이미지 미리보기 로직 추가
+                Glide.with(this)
+                    .load(selectedFileUri)
+                    .into(imagePreview)
+                imagePreview.visibility = View.VISIBLE
+                uploadedFileUri = selectedFileUri
+                attachedFiles.add(selectedFileUri)
+                attachedFilesAdapter.addFile(selectedFileUri)
+            } else {
+                // 선택된 파일이 없음을 사용자에게 알릴 수 있습니다.
+                Toast.makeText(this, "파일을 선택하지 않았습니다.", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
     private fun showWarningDialog() {
         AlertDialog.Builder(this)
             .setMessage("작성중인 내용이 있습니다. '확인'을 누르시면 게시물 수정을 취소하고 게시판으로 이동합니다.")

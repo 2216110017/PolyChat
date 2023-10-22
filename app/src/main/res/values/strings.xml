@@ -4,4 +4,10 @@
     <string name="zoomed_image" />
     <string name="image_preview" />
     <string name="attach_file_or_image" />
+    <string name="content">내용</string>
+    <string name="notice">공지사항</string>
+    <string name="title">제목</string>
+    <string name="back">뒤로</string>
+    <string name="write">작성</string>
+    <string name="addFile">파일 추가하기</string>
 </resources>
