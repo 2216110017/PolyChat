@@ -30,5 +30,29 @@
     "department": "전기과",
     "email": "2216110001@office.kopo.ac.kr",
     "phone": "000-2222-3333"
+  },
+  {
+    "userID": 5,
+    "stuNum": "2216111111",
+    "stuName": "아이티1",
+    "department": "IT융합제어과",
+    "email": "2216111111@office.kopo.ac.kr",
+    "phone": ""
+  },
+  {
+    "userID": 6,
+    "stuNum": "2216222222",
+    "stuName": "아이티2",
+    "department": "IT융합제어과",
+    "email": "2216222222@office.kopo.ac.kr",
+    "phone": ""
+  },
+  {
+    "userID": 7,
+    "stuNum": "2216333333",
+    "stuName": "아이티3",
+    "department": "IT융합제어과",
+    "email": "2216333333@office.kopo.ac.kr",
+    "phone": ""
   }
 ]

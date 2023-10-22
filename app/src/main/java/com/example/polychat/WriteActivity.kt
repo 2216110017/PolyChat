@@ -8,11 +8,11 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.webkit.MimeTypeMap
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +20,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.tasks.Continuation
+import com.google.android.gms.tasks.Task
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.database.DatabaseReference
@@ -28,7 +32,11 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.UploadTask
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class WriteActivity : AppCompatActivity() {
 
@@ -37,19 +45,11 @@ class WriteActivity : AppCompatActivity() {
     private lateinit var noticeCheckbox: CheckBox
     private lateinit var databaseReference: DatabaseReference
     private lateinit var storageReference: StorageReference
+    private lateinit var attachedFilesRecyclerView: RecyclerView
+    private lateinit var attachedFilesAdapter: AttachedFileAdapter
+    private val attachedFiles = ArrayList<Uri>()
     private var uploadedFileUri: Uri? = null
 
-    private val imagePickerActivityResultLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val selectedImageUri = result.data?.data
-            findViewById<ImageView>(R.id.image_preview).apply {
-                visibility = View.VISIBLE
-                setImageURI(selectedImageUri)
-            }
-        }
-    }
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -66,6 +66,17 @@ class WriteActivity : AppCompatActivity() {
             DebugAppCheckProviderFactory.getInstance(),
         )
 
+        attachedFilesAdapter = AttachedFileAdapter(attachedFiles) { uri ->
+            val position = attachedFiles.indexOf(uri)
+            if (position != -1) {
+                attachedFiles.removeAt(position)
+                attachedFilesAdapter.notifyItemRemoved(position)
+            }
+        }
+        attachedFilesRecyclerView = findViewById(R.id.attachedFilesRecyclerView)
+        attachedFilesRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        attachedFilesRecyclerView.adapter = attachedFilesAdapter
+
         val department = intent.getStringExtra("department") ?: ""
         val uId = intent.getStringExtra("uId")
         Log.d("WriteActivity", "BoardActivity에서 받은 uId값 : $uId")
@@ -74,6 +85,13 @@ class WriteActivity : AppCompatActivity() {
         contentEditText = findViewById(R.id.content_edittext)
         noticeCheckbox = findViewById(R.id.notice_checkbox)
         databaseReference = FirebaseDatabase.getInstance().getReference("post")
+        storageReference = FirebaseStorage.getInstance().reference
+
+        findViewById<ImageButton>(R.id.attach_btn).setOnClickListener {
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "*/*"
+            filePickerActivityResultLauncher.launch(intent)
+        }
 
         findViewById<View>(R.id.write_post_button).setOnClickListener {
             val title = titleEditText.text.toString()
@@ -109,23 +127,50 @@ class WriteActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<ImageButton>(R.id.attach_btn).setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            imagePickerActivityResultLauncher.launch(intent)
-        }
-
-        findViewById<SeekBar>(R.id.image_size_slider).setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                findViewById<ImageView>(R.id.image_preview).layoutParams.height = progress
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-
         this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
+    }
+
+    private val filePickerActivityResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val selectedFileUri = result.data?.data
+            findViewById<ImageView>(R.id.image_preview).apply {
+                visibility = View.VISIBLE
+                setImageURI(selectedFileUri)
+            }
+            uploadImageToFirebaseStorage(selectedFileUri)
+        }
+    }
+
+    private fun uploadImageToFirebaseStorage(imageUri: Uri?) {
+        if (imageUri != null) {
+            val contentResolver = applicationContext.contentResolver
+            val mimeType = contentResolver.getType(imageUri)
+            val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+
+            val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+            val date = dateFormat.format(Date())
+            val department = intent.getStringExtra("department") ?: "unknown"
+            val filePath = "$date/$department/${System.currentTimeMillis()}.$extension"
+
+            val fileReference = storageReference.child(filePath)
+            fileReference.putFile(imageUri).continueWithTask(Continuation<UploadTask.TaskSnapshot, Task<Uri>> { task ->
+                if (!task.isSuccessful) {
+                    task.exception?.let {
+                        throw it
+                    }
+                }
+                return@Continuation fileReference.downloadUrl
+            }).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    uploadedFileUri = task.result
+                    Toast.makeText(this, "파일 업로드 성공!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "파일 업로드 실패.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun showWarningDialog() {
