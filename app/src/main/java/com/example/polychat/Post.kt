@@ -7,6 +7,5 @@ data class Post(
     var noticechk: Int = 0,
     var department: String? = null,
     var postID: String? = null, // firebase 게시글 고유값
-    var fileUrl: String? = null,
-    var imageUrl: String? = null
+    val fileUrls: List<String>? = null
 )

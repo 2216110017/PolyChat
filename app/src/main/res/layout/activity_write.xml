@@ -80,25 +80,3 @@
 
     </LinearLayout>
 </LinearLayout>
-
-
-<!--<FrameLayout-->
-<!--android:layout_width="match_parent"-->
-<!--android:layout_height="0dp"-->
-<!--android:layout_weight="1">-->
-
-<!--<EditText-->
-<!--    android:id="@+id/content_edittext"-->
-<!--    android:layout_width="match_parent"-->
-<!--    android:layout_height="match_parent"-->
-<!--    android:hint="@string/content"-->
-<!--    android:inputType="textMultiLine"-->
-<!--    android:autofillHints="" />-->
-
-<!--<ImageView-->
-<!--    android:id="@+id/image_preview"-->
-<!--    android:layout_width="match_parent"-->
-<!--    android:layout_height="200dp"-->
-<!--    android:visibility="gone"-->
-<!--    android:contentDescription="@string/image_preview" />-->
-<!--</FrameLayout>-->

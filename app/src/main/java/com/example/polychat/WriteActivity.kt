@@ -48,7 +48,8 @@ class WriteActivity : AppCompatActivity() {
     private lateinit var attachedFilesRecyclerView: RecyclerView
     private lateinit var attachedFilesAdapter: AttachedFileAdapter
     private val attachedFiles = ArrayList<Uri>()
-    private var uploadedFileUri: Uri? = null
+    private val uploadedFileUris = ArrayList<Uri>()
+
 
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -104,13 +105,15 @@ class WriteActivity : AppCompatActivity() {
             }
 
             // Post 객체 생성 시, fileUrl 필드에 uploadedFileUri 값을 할당합니다.
+            val fileUrls = uploadedFileUris.map { it.toString() }
             val post = Post(
                 title = title,
                 content = content,
                 uid = uId,
                 noticechk = noticechk,
                 department = department,
-                fileUrl = uploadedFileUri?.toString()
+//                fileUrl = uploadedFileUri?.toString()
+                fileUrls = fileUrls
             )
             val postKey = databaseReference.push().key  // 고유한 키 생성
             if (postKey != null) {
@@ -135,44 +138,43 @@ class WriteActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val selectedFileUri = result.data?.data
-            findViewById<ImageView>(R.id.image_preview).apply {
-                visibility = View.VISIBLE
-                setImageURI(selectedFileUri)
-            }
-            uploadImageToFirebaseStorage(selectedFileUri)
-        }
-    }
-
-    private fun uploadImageToFirebaseStorage(fileUri: Uri?) {
-        if (fileUri != null) {
-            val contentResolver = applicationContext.contentResolver
-            val mimeType = contentResolver.getType(fileUri)
-            val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
-
-            val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-            val date = dateFormat.format(Date())
-            val department = intent.getStringExtra("department") ?: "unknown"
-            val filePath = "$date/$department/${System.currentTimeMillis()}.$extension"
-
-
-            val fileReference = storageReference.child(filePath)
-            fileReference.putFile(fileUri).continueWithTask(Continuation<UploadTask.TaskSnapshot, Task<Uri>> { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let {
-                        throw it
-                    }
-                }
-                return@Continuation fileReference.downloadUrl
-            }).addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    uploadedFileUri = task.result
-                    Toast.makeText(this, "파일 업로드 성공!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "파일 업로드 실패.", Toast.LENGTH_SHORT).show()
-                }
+            if (selectedFileUri != null) {
+                attachedFilesAdapter.addFile(selectedFileUri)
+                uploadImageToFirebaseStorage(selectedFileUri)
             }
         }
     }
+
+
+    private fun uploadImageToFirebaseStorage(fileUri: Uri) {
+        val contentResolver = applicationContext.contentResolver
+        val mimeType = contentResolver.getType(fileUri)
+        val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+
+        val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val date = dateFormat.format(Date())
+        val department = intent.getStringExtra("department") ?: "unknown"
+        val filePath = "$date/$department/${System.currentTimeMillis()}.$extension"
+
+        val fileReference = storageReference.child(filePath)
+        fileReference.putFile(fileUri).continueWithTask(Continuation<UploadTask.TaskSnapshot, Task<Uri>> { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let {
+                    throw it
+                }
+            }
+            return@Continuation fileReference.downloadUrl
+        }).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val downloadUri = task.result
+                uploadedFileUris.add(downloadUri)
+                Toast.makeText(this, "파일 업로드 성공!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "파일 업로드 실패.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     private fun showWarningDialog() {
         AlertDialog.Builder(this)

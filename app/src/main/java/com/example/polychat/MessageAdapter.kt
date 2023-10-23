@@ -83,25 +83,32 @@ class MessageAdapter(
                 holder.receiveUserName.text = currentMessage.userName
             }
             is SendImageViewHolder -> {
-                Glide.with(context)
-                    .load(currentMessage.imageUrl)
-                    .apply(requestOptions)
-                    .transition(DrawableTransitionOptions.withCrossFade()) // 크로스 페이드 애니메이션
-                    .into(holder.sendImageView)
-                holder.sendImageTime.text = currentMessage.sentTime
-                holder.sendUserName.text = currentMessage.userName
-                holder.bind(currentMessage)
+                val fileUrls = currentMessage.fileUrls
+                if (!fileUrls.isNullOrEmpty()) {
+                    Glide.with(context)
+                        .load(fileUrls[0])
+                        .apply(requestOptions)
+                        .transition(DrawableTransitionOptions.withCrossFade()) // 크로스 페이드 애니메이션
+                        .into(holder.sendImageView)
+                    holder.sendImageTime.text = currentMessage.sentTime
+                    holder.sendUserName.text = currentMessage.userName
+                    holder.bind(fileUrls)
+                }
             }
             is ReceiveImageViewHolder -> {
-                Glide.with(context)
-                    .load(currentMessage.imageUrl)
-                    .apply(requestOptions)
-                    .transition(DrawableTransitionOptions.withCrossFade()) // 크로스 페이드 애니메이션
-                    .into(holder.receiveImageView)
-                holder.receiveImageTime.text = currentMessage.sentTime
-                holder.receiveUserName.text = currentMessage.userName
-                holder.bind(currentMessage)
+                val fileUrls = currentMessage.fileUrls
+                if (!fileUrls.isNullOrEmpty()) {
+                    Glide.with(context)
+                        .load(fileUrls[0])
+                        .apply(requestOptions)
+                        .transition(DrawableTransitionOptions.withCrossFade()) // 크로스 페이드 애니메이션
+                        .into(holder.receiveImageView)
+                    holder.receiveImageTime.text = currentMessage.sentTime
+                    holder.receiveUserName.text = currentMessage.userName
+                    holder.bind(fileUrls)
+                }
             }
+
             is SendFileViewHolder -> {
                 holder.sendFileIconView.setImageResource(R.drawable.baseline_insert_drive_file_24)
                 holder.sendFileTime.text = currentMessage.sentTime
@@ -146,11 +153,13 @@ class MessageAdapter(
         val sendImageTime: TextView = itemView.findViewById(R.id.send_image_time)
         val sendUserName: TextView = itemView.findViewById(R.id.send_user_name)
 
-        fun bind(message: Message) {
+        fun bind(fileUrls: List<String>) {
             sendImageView.setOnClickListener {
-                val intent = Intent(itemView.context, ZoomedImageActivity::class.java)
-                intent.putExtra("IMAGE_URL", message.imageUrl)
-                itemView.context.startActivity(intent)
+                if (fileUrls.isNotEmpty()) {
+                    val intent = Intent(itemView.context, ZoomedImageActivity::class.java)
+                    intent.putExtra("IMAGE_URL", fileUrls[0])
+                    itemView.context.startActivity(intent)
+                }
             }
         }
     }
@@ -160,11 +169,13 @@ class MessageAdapter(
         val receiveImageTime: TextView = itemView.findViewById(R.id.receive_image_time)
         val receiveUserName: TextView = itemView.findViewById(R.id.receive_user_name)
 
-        fun bind(message: Message) {
+        fun bind(fileUrls: List<String>) {
             receiveImageView.setOnClickListener {
-                val intent = Intent(itemView.context, ZoomedImageActivity::class.java)
-                intent.putExtra("IMAGE_URL", message.imageUrl)
-                itemView.context.startActivity(intent)
+                if (fileUrls.isNotEmpty()) {
+                    val intent = Intent(itemView.context, ZoomedImageActivity::class.java)
+                    intent.putExtra("IMAGE_URL", fileUrls[0])
+                    itemView.context.startActivity(intent)
+                }
             }
         }
     }
