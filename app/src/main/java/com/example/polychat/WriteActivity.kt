@@ -143,10 +143,10 @@ class WriteActivity : AppCompatActivity() {
         }
     }
 
-    private fun uploadImageToFirebaseStorage(imageUri: Uri?) {
-        if (imageUri != null) {
+    private fun uploadImageToFirebaseStorage(fileUri: Uri?) {
+        if (fileUri != null) {
             val contentResolver = applicationContext.contentResolver
-            val mimeType = contentResolver.getType(imageUri)
+            val mimeType = contentResolver.getType(fileUri)
             val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
 
             val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
@@ -154,8 +154,9 @@ class WriteActivity : AppCompatActivity() {
             val department = intent.getStringExtra("department") ?: "unknown"
             val filePath = "$date/$department/${System.currentTimeMillis()}.$extension"
 
+
             val fileReference = storageReference.child(filePath)
-            fileReference.putFile(imageUri).continueWithTask(Continuation<UploadTask.TaskSnapshot, Task<Uri>> { task ->
+            fileReference.putFile(fileUri).continueWithTask(Continuation<UploadTask.TaskSnapshot, Task<Uri>> { task ->
                 if (!task.isSuccessful) {
                     task.exception?.let {
                         throw it

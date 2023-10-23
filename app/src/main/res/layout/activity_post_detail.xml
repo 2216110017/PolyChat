@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_margin="8dp"
-            android:text="수정" />
+            android:text="@string/edit" />
 
         <Button
             android:id="@+id/delete_button"
@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_margin="8dp"
-            android:text="삭제"            />
+            android:text="@string/delete"            />
 
         <Button
             android:id="@+id/back_button"
@@ -64,6 +64,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_margin="8dp"
-            android:text="뒤로" />
+            android:text="@string/back" />
     </LinearLayout>
 </LinearLayout>

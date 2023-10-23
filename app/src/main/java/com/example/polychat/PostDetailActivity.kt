@@ -1,11 +1,7 @@
 package com.example.polychat
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -21,6 +17,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
@@ -34,7 +31,11 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileInputStream
+import java.net.URLConnection
 
 class PostDetailActivity : AppCompatActivity() {
 
@@ -136,6 +137,7 @@ class PostDetailActivity : AppCompatActivity() {
                         contentLabel.tag = it.department // 학과 정보를 tag에 저장
                         noticechk = it.noticechk
                         fileUrl = it.fileUrl
+                        Log.d("PostDetailActivity", "불러온 fileUrl: $fileUrl")
 
                         // 첨부된 파일의 URL을 사용하여 미리보기 및 다운로드 버튼 설정
                         it.fileUrl?.let { fileUrl ->
@@ -147,7 +149,7 @@ class PostDetailActivity : AppCompatActivity() {
 
                             downloadButton.visibility = View.VISIBLE
                             downloadButton.setOnClickListener {
-                                downloadFile(fileUrl)
+                                downloadFile()
                             }
                         } ?: run {
                             downloadButton.visibility = View.GONE
@@ -174,44 +176,81 @@ class PostDetailActivity : AppCompatActivity() {
         this.onBackPressedDispatcher.addCallback(this,onBackPressedCallback) // 뒤로가기 콜백
     }
 
-    // 파일 다운로드 함수
-    private fun downloadFile(fileUrl: String) {
-        val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val uri = Uri.parse(fileUrl)
-        val request = DownloadManager.Request(uri)
-
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val fileName = uri.lastPathSegment ?: "downloaded_file"
-            val values = ContentValues().apply {
-                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
-                put(MediaStore.Downloads.IS_PENDING, 1)
-            }
-
-            val resolver = contentResolver
-            val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            val downloadUri = resolver.insert(collection, values)
-
-            request.setDestinationUri(downloadUri)
-
-            val downloadId = downloadManager.enqueue(request)
-
-            val onComplete = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    values.clear()
-                    values.put(MediaStore.Downloads.IS_PENDING, 0)
-                    resolver.update(downloadUri!!, values, null, null)
-                    context?.unregisterReceiver(this)
+    private fun downloadFile() {
+        postUID?.let { postUid ->
+            databaseReference.child(postUid).addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val post = snapshot.getValue(Post::class.java)
+                    val fileUrl = post?.fileUrl
+                    if (fileUrl != null) {
+                        downloadFileFromFirebaseStorage(fileUrl)
+                    } else {
+                        Toast.makeText(this@PostDetailActivity, "파일 URL을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    }
                 }
-            }
 
-            registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-        } else {
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.lastPathSegment)
-            downloadManager.enqueue(request)
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@PostDetailActivity, "데이터를 불러오는 데 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            })
+        } ?: run {
+            Toast.makeText(this, "게시글 UID가 없습니다.", Toast.LENGTH_SHORT).show()
         }
     }
+
+    private fun downloadFileFromFirebaseStorage(fileUrl: String) {
+        Log.d("PostDetailActivity", "다운로드할 파일 URL: $fileUrl")
+        val storageRef = Firebase.storage.getReferenceFromUrl(fileUrl)
+        val localFile = File.createTempFile("temp", "file")
+
+        storageRef.getFile(localFile).addOnSuccessListener {
+            // 파일이 성공적으로 다운로드되었습니다.
+            Toast.makeText(this@PostDetailActivity, "파일이 다운로드되었습니다.", Toast.LENGTH_SHORT).show()
+
+            try {
+                // 파일을 사용자의 다운로드 폴더로 이동
+                val mimeType = URLConnection.guessContentTypeFromName(localFile.name) ?: "application/octet-stream"
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, localFile.name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(MediaStore.MediaColumns.SIZE, localFile.length())
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                    }
+                }
+                val contentResolver = applicationContext.contentResolver
+                val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                } else {
+                    // Android 9 (Pie) 이하에서는 MediaStore를 사용하지 않고 직접 파일을 다운로드 폴더에 저장
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val destinationFile = File(downloadsDir, localFile.name)
+                    localFile.copyTo(destinationFile, true)
+                    Uri.fromFile(destinationFile)
+                }
+                contentResolver.openOutputStream(uri!!).use { outputStream ->
+                    FileInputStream(localFile).use { inputStream ->
+                        inputStream.copyTo(outputStream!!)
+                    }
+                }
+
+                // 파일 열기
+                val openFileIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, mimeType)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(openFileIntent)
+            } catch (e: Exception) {
+                Toast.makeText(this@PostDetailActivity, "파일을 저장하는 데 실패했습니다.", Toast.LENGTH_SHORT).show()
+                Log.e("PostDetailActivity", "파일 저장 실패: ${e.message}")
+            }
+        }.addOnFailureListener {
+            // 파일 다운로드에 실패했습니다.
+            Toast.makeText(this@PostDetailActivity, "파일을 다운로드하는 데 실패했습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
