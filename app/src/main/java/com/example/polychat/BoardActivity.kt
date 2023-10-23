@@ -67,9 +67,9 @@ class BoardActivity : AppCompatActivity() {
                             val content = postSnapshot.child("content").getValue(String::class.java) ?: ""
                             val uid = postSnapshot.child("uid").getValue(String::class.java) ?: ""
                             val noticechk = postSnapshot.child("noticechk").getValue(Long::class.java)?.toInt() ?: 0
-                            val fileUrl = postSnapshot.child("fileUrl").getValue(String::class.java)  // fileUrl 불러오기
+                            val fileUrls = postSnapshot.child("fileUrls").children.map { it.getValue(String::class.java) ?: "" }
 
-                            val post = Post(title, content, uid, noticechk, department, postSnapshot.key, fileUrl)  // postSnapshot.key를 사용하여 postId 값을 설정 및 fileUrl 추가
+                            val post = Post(title, content, uid, noticechk, department, postSnapshot.key, fileUrls)  // postSnapshot.key를 사용하여 postId 값을 설정 및 fileUrl 추가
                             if (noticechk == 1) {
                                 noticeList.add(post)
                             } else {

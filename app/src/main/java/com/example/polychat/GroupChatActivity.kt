@@ -194,7 +194,7 @@ class GroupChatActivity : AppCompatActivity() {
         storageRef.putFile(fileUri).addOnSuccessListener {
             storageRef.downloadUrl.addOnSuccessListener { uri ->
                 val fileUrl = uri.toString()
-
+                val fileUrls = listOf(fileUrl)
                 // 파일의 MIME 타입을 확인하여 이미지인지 일반 파일인지 구분
                 val fileType = contentResolver.getType(fileUri)
                 val currentTime = SimpleDateFormat1("a h:mm", Locale.KOREA).apply {
@@ -202,14 +202,18 @@ class GroupChatActivity : AppCompatActivity() {
                 }.format(System.currentTimeMillis())
                 val messageObject = when {
                     fileType?.startsWith("image/") == true -> {
-                        Message("", loggedInUser.uId, currentTime, imageUrl = fileUrl, messageType = "image")
+                        Message("", loggedInUser.uId, currentTime, fileUrls = fileUrls, messageType = "image")
                     }
                     else -> {
-                        Message("", loggedInUser.uId, currentTime, fileUrl = fileUrl, messageType = "file")
+                        Message("", loggedInUser.uId, currentTime, fileUrls = fileUrls, messageType = "file")
                     }
                 }
                 mDbRef.child("chats").child(groupSenderRoom).child("messages").push()
                     .setValue(messageObject)
+                // 이미지 URL을 ZoomedImageActivity로 전달
+                val intent = Intent(this, ZoomedImageActivity::class.java)
+                intent.putExtra("FILE_URL", fileUrl) // fileUrl은 이미지의 다운로드 URL입니다.
+                startActivity(intent)
             }
         }
     }

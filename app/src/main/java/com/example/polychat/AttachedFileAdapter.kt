@@ -1,6 +1,7 @@
 package com.example.polychat
 
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,8 +23,10 @@ class AttachedFileAdapter(private val files: ArrayList<Uri>, private val onDelet
     override fun onBindViewHolder(holder: FileViewHolder, position: Int) {
         val uri = files[position]
         holder.imageView.setImageURI(uri)
+        Log.e("AttachedFileAdapter","uri : $uri")
         holder.deleteButton.setOnClickListener {
             onDelete(uri)
+            Log.e("AttachedFileAdapter","uri : $uri")
         }
     }
 

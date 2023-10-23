@@ -17,25 +17,11 @@ class ZoomedImageActivity : AppCompatActivity() {
 
         zoomedImageView = findViewById(R.id.zoomed_image_view)
 
-        val imageUrl = intent.getStringExtra("IMAGE_URL")
-        if (imageUrl != null) {
+        val fileUrl = intent.getStringExtra("FILE_URL")
+        if (fileUrl != null) {
             Glide.with(this)
-                .load(imageUrl)
+                .load(fileUrl)
                 .into(zoomedImageView)
         }
     }
 }
-//
-//private lateinit var zoomedImageView: SubsamplingScaleImageView
-//
-//override fun onCreate(savedInstanceState: Bundle?) {
-//    super.onCreate(savedInstanceState)
-//    setContentView(R.layout.activity_zoomed_image)
-//
-//    zoomedImageView = findViewById(R.id.zoomed_image_view)
-//
-//    val imageUrl = intent.getStringExtra("IMAGE_URL")
-//    if (imageUrl != null) {
-//        zoomedImageView.setImage(ImageSource.uri(imageUrl))
-//    }
-//}

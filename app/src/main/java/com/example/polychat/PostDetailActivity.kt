@@ -17,7 +17,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
@@ -50,7 +49,7 @@ class PostDetailActivity : AppCompatActivity() {
     private var postUID: String? = null
     private var userUID: String? = null
     private var noticechk: Int = 0  // 기본값은 0으로 설정
-    private var fileUrl: String? = null
+    private var fileUrls: List<String>? = null
 
 
 
@@ -87,12 +86,14 @@ class PostDetailActivity : AppCompatActivity() {
         fetchPostDetails()
 
         filePreview.setOnClickListener {
-            fileUrl?.let { url ->
-                val intent = Intent(this@PostDetailActivity, ZoomedImageActivity::class.java)
-                intent.putExtra("IMAGE_URL", url)
-                startActivity(intent)
-            } ?: run {
-                Toast.makeText(this, "이미지를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+            fileUrls?.let { urls ->
+                if (urls.isNotEmpty()) {
+                    val intent = Intent(this@PostDetailActivity, ZoomedImageActivity::class.java)
+                    intent.putExtra("FILE_URL", urls[0])  // 첫 번째 이미지를 보여줌
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "이미지를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -136,14 +137,14 @@ class PostDetailActivity : AppCompatActivity() {
                         contentLabel.text = it.content
                         contentLabel.tag = it.department // 학과 정보를 tag에 저장
                         noticechk = it.noticechk
-                        fileUrl = it.fileUrl
-                        Log.d("PostDetailActivity", "불러온 fileUrl: $fileUrl")
+                        fileUrls = it.fileUrls
+                        Log.d("PostDetailActivity", "불러온 fileUrl: $fileUrls")
 
                         // 첨부된 파일의 URL을 사용하여 미리보기 및 다운로드 버튼 설정
-                        it.fileUrl?.let { fileUrl ->
-                            // Glide를 사용하여 이미지 로드
+                        if (fileUrls != null && fileUrls!!.isNotEmpty()) {
+                            // Glide를 사용하여 첫 번째 이미지 로드
                             Glide.with(this@PostDetailActivity)
-                                .load(fileUrl)
+                                .load(fileUrls!![0])
                                 .into(filePreview)
                             filePreview.visibility = View.VISIBLE
 
@@ -151,7 +152,7 @@ class PostDetailActivity : AppCompatActivity() {
                             downloadButton.setOnClickListener {
                                 downloadFile()
                             }
-                        } ?: run {
+                        } else {
                             downloadButton.visibility = View.GONE
                         }
 
@@ -181,9 +182,9 @@ class PostDetailActivity : AppCompatActivity() {
             databaseReference.child(postUid).addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val post = snapshot.getValue(Post::class.java)
-                    val fileUrl = post?.fileUrl
-                    if (fileUrl != null) {
-                        downloadFileFromFirebaseStorage(fileUrl)
+                    val fileUrls = post?.fileUrls  // fileUrl을 fileUrls로 변경
+                    if (fileUrls != null && fileUrls.isNotEmpty()) {
+                        downloadFileFromFirebaseStorage(fileUrls[0])  // 첫 번째 파일을 다운로드
                     } else {
                         Toast.makeText(this@PostDetailActivity, "파일 URL을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
                     }
@@ -249,8 +250,6 @@ class PostDetailActivity : AppCompatActivity() {
             Toast.makeText(this@PostDetailActivity, "파일을 다운로드하는 데 실패했습니다.", Toast.LENGTH_SHORT).show()
         }
     }
-
-
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)

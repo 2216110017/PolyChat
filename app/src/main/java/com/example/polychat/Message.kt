@@ -19,10 +19,10 @@ data class Message(
     var sentTime: String = currentFormattedTime,
     var userName: String? = null,
     var fullDate: String = currentFullDate,
-    var imageUrl: String? = null,
+    var fileUrls: List<String>? = null,
     var fileName: String? = null,
-    var fileUrl: String? = null,
     var messageType: String = "text"
-){
-    constructor():this("", "", "", null, "", null, null, null, )
+) {
+    constructor() : this("", "", "", null, "", null, null, "text")
 }
+
