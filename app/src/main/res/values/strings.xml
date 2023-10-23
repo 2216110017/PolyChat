@@ -10,4 +10,6 @@
     <string name="back">뒤로</string>
     <string name="write">작성</string>
     <string name="addFile">파일 추가하기</string>
+    <string name="edit">수정</string>
+    <string name="delete">삭제</string>
 </resources>
