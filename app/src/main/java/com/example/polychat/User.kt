@@ -1,5 +1,7 @@
 package com.example.polychat
 
+import android.provider.ContactsContract
+
 data class User(
     var stuName: String,
     var stuNum: String,

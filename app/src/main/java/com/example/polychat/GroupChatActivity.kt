@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -71,27 +72,16 @@ class GroupChatActivity : AppCompatActivity() {
 
         // 로그인된 사용자 정보 가져오기
         lifecycleScope.launch {
-            val stuName = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("stuName")] ?: ""
-            }.first()
-            val stuNum = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("stuNum")] ?: ""
-            }.first()
-            val department = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("department")] ?: ""
-            }.first()
-            val email = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("email")] ?: ""
-            }.first()
-            val phone = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("phone")] ?: ""
-            }.first()
-            val uId =
-                dataStore.data.map { preferences -> preferences[stringPreferencesKey("uId")] ?: "" }
-                    .first()
+            val stuName = dataStore.data.map { preferences -> preferences[stringPreferencesKey("stuName")] ?: "" }.first()
+            val stuNum = dataStore.data.map { preferences -> preferences[stringPreferencesKey("stuNum")] ?: "" }.first()
+            val department = dataStore.data.map { preferences -> preferences[stringPreferencesKey("department")] ?: "" }.first()
+            val email = dataStore.data.map { preferences -> preferences[stringPreferencesKey("email")] ?: "" }.first()
+            val phone = dataStore.data.map { preferences -> preferences[stringPreferencesKey("phone")] ?: "" }.first()
+            val uId = dataStore.data.map { preferences -> preferences[stringPreferencesKey("uId")] ?: "" }.first()
 
             loggedInUser = User(stuName, stuNum, department, email, phone, uId)
             isUserInitialized = true
+
         }
         groupSenderRoom = loggedInUser.department
         messageList = ArrayList()
@@ -109,7 +99,6 @@ class GroupChatActivity : AppCompatActivity() {
         departmentName = intent.getStringExtra("department") ?: ""
         setSupportActionBar(binding.toolbar)
         supportActionBar?.title = departmentName
-
 
         mDbRef = FirebaseDatabase.getInstance().reference
 
@@ -142,6 +131,7 @@ class GroupChatActivity : AppCompatActivity() {
                 .setValue(messageObject)
 
             binding.messageEdit.setText("")
+            Log.d("로그", "messageObject.userProfile ${messageObject.userProfile}")
         }
 
         mDbRef.child("chats").child(groupSenderRoom).child("messages")
@@ -226,7 +216,6 @@ class GroupChatActivity : AppCompatActivity() {
             }
         }
     }
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return super.onCreateOptionsMenu(menu)

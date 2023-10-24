@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -61,24 +62,12 @@ class ChatActivity : AppCompatActivity() {
 
         // 로그인된 사용자 정보 가져오기
         lifecycleScope.launch {
-            val stuName = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("stuName")] ?: ""
-            }.first()
-            val stuNum = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("stuNum")] ?: ""
-            }.first()
-            val department = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("department")] ?: ""
-            }.first()
-            val email = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("email")] ?: ""
-            }.first()
-            val phone = dataStore.data.map { preferences ->
-                preferences[stringPreferencesKey("phone")] ?: ""
-            }.first()
-            val uId =
-                dataStore.data.map { preferences -> preferences[stringPreferencesKey("uId")] ?: "" }
-                    .first()
+            val stuName = dataStore.data.map { preferences -> preferences[stringPreferencesKey("stuName")] ?: "" }.first()
+            val stuNum = dataStore.data.map { preferences -> preferences[stringPreferencesKey("stuNum")] ?: "" }.first()
+            val department = dataStore.data.map { preferences -> preferences[stringPreferencesKey("department")] ?: "" }.first()
+            val email = dataStore.data.map { preferences -> preferences[stringPreferencesKey("email")] ?: "" }.first()
+            val phone = dataStore.data.map { preferences -> preferences[stringPreferencesKey("phone")] ?: "" }.first()
+            val uId =  dataStore.data.map { preferences -> preferences[stringPreferencesKey("uId")] ?: "" }.first()
 
             loggedInUser = User(stuName, stuNum, department, email, phone, uId)
             isUserInitialized = true
@@ -205,12 +194,16 @@ class ChatActivity : AppCompatActivity() {
                         mDbRef.child("chats").child(receiverRoom).child("messages").push()
                             .setValue(messageObject)
                     }
-                // 이미지 URL을 ZoomedImageActivity로 전달
-                val intent = Intent(this, ZoomedImageActivity::class.java)
-                intent.putExtra("FILE_URL", fileUrl) // fileUrl은 이미지의 다운로드 URL입니다.
-                startActivity(intent)
             }
         }
+    }
+
+    fun setupMessageAdapterAndRecyclerView() {
+        messageList = ArrayList()
+        val messageAdapter = MessageAdapter(this, messageList, loggedInUser.uId)
+
+        binding.chatRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.chatRecyclerView.adapter = messageAdapter
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
