@@ -122,7 +122,12 @@ class ChatActivity : AppCompatActivity() {
                 timeZone = TimeZone.getTimeZone("Asia/Seoul")
             }.format(System.currentTimeMillis())
 
-            val messageObject = Message(message,loggedInUser.uId, currentTime)
+            val messageObject = Message(
+                message,
+                loggedInUser.uId,
+                currentTime,
+                loggedInUser.stuName,
+                userProfile = loggedInUser.profile)
 
             mDbRef.child("chats").child(senderRoom).child("messages").push()
                 .setValue(messageObject).addOnSuccessListener {

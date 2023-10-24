@@ -5,24 +5,33 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="8dp">
 
+    <ImageView
+        android:id="@+id/receiverProfileImageView"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/default_profile"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/receive_user_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="이름"
         android:textSize="12sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintStart_toEndOf="@+id/receiverProfileImageView"
+        app:layout_constraintTop_toTopOf="@+id/receiverProfileImageView"/>
 
     <ImageView
         android:id="@+id/receive_file_icon_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:padding="10dp"
         android:adjustViewBounds="true"
-        app:layout_constraintStart_toEndOf="@+id/receive_user_name"
-        app:layout_constraintBottom_toBottomOf="@+id/receive_user_name"/>
+        app:layout_constraintStart_toEndOf="@+id/receiverProfileImageView"
+        app:layout_constraintBottom_toBottomOf="@+id/receiverProfileImageView" />
 
     <TextView
         android:id="@+id/receive_file_time"
@@ -31,5 +40,5 @@
         android:text="12:34 PM"
         android:textSize="12sp"
         app:layout_constraintStart_toEndOf="@id/receive_file_icon_view"
-        app:layout_constraintBottom_toBottomOf="@id/receive_user_name"/>
+        app:layout_constraintBottom_toBottomOf="@id/receive_file_icon_view" />
 </androidx.constraintlayout.widget.ConstraintLayout>
