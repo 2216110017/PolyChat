@@ -3,6 +3,7 @@ package com.example.polychat
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +19,7 @@ import com.bumptech.glide.request.RequestOptions
 class MessageAdapter(
     private val context: Context,
     private val messageList: ArrayList<Message>,
-    private val loggedInUserId: String
+    private val loggedInUserId: String,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val sendText = 1
@@ -75,14 +76,23 @@ class MessageAdapter(
                 holder.sendMessage.text = currentMessage.message
                 holder.sendTime.text = currentMessage.sentTime
                 holder.sendUserName.text = currentMessage.userName
+                Glide.with(context)
+                    .load(currentMessage.userProfile?.url)
+                    .into(holder.senderProfileImageView)
             }
 
             is ReceiveViewHolder -> {
                 holder.receiveMessage.text = currentMessage.message
                 holder.receiveTime.text = currentMessage.sentTime
                 holder.receiveUserName.text = currentMessage.userName
+                Glide.with(context)
+                    .load(currentMessage.userProfile?.url)
+                    .into(holder.receiverProfileImageView)
             }
             is SendImageViewHolder -> {
+                Glide.with(context)
+                    .load(currentMessage.userProfile?.url)
+                    .into(holder.senderProfileImageView)
                 val fileUrls = currentMessage.fileUrls
                 if (!fileUrls.isNullOrEmpty()) {
                     Glide.with(context)
@@ -96,6 +106,9 @@ class MessageAdapter(
                 }
             }
             is ReceiveImageViewHolder -> {
+                Glide.with(context)
+                    .load(currentMessage.userProfile?.url)
+                    .into(holder.receiverProfileImageView)
                 val fileUrls = currentMessage.fileUrls
                 if (!fileUrls.isNullOrEmpty()) {
                     Glide.with(context)
@@ -110,11 +123,17 @@ class MessageAdapter(
             }
 
             is SendFileViewHolder -> {
+                Glide.with(context)
+                    .load(currentMessage.userProfile?.url)
+                    .into(holder.senderProfileImageView)
                 holder.sendFileIconView.setImageResource(R.drawable.baseline_insert_drive_file_24)
                 holder.sendFileTime.text = currentMessage.sentTime
                 holder.sendUserName.text = currentMessage.userName
             }
             is ReceiveFileViewHolder -> {
+                Glide.with(context)
+                    .load(currentMessage.userProfile?.url)
+                    .into(holder.receiverProfileImageView)
                 holder.receiveFileIconView.setImageResource(R.drawable.baseline_insert_drive_file_24)
                 holder.receiveFileTime.text = currentMessage.sentTime
                 holder.receiveUserName.text = currentMessage.userName
@@ -142,16 +161,19 @@ class MessageAdapter(
         val sendMessage: TextView = itemView.findViewById(R.id.send_message_text)
         val sendTime: TextView = itemView.findViewById(R.id.send_message_time)
         val sendUserName: TextView = itemView.findViewById(R.id.send_user_name)
+        val senderProfileImageView: ImageView = itemView.findViewById(R.id.senderProfileImageView)
     }
     class ReceiveViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val receiveMessage: TextView = itemView.findViewById(R.id.receive_message_text)
         val receiveTime: TextView = itemView.findViewById(R.id.receive_message_time)
         val receiveUserName: TextView = itemView.findViewById(R.id.receive_user_name)
+        val receiverProfileImageView: ImageView = itemView.findViewById(R.id.receiverProfileImageView)
     }
     class SendImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val sendImageView: ImageView = itemView.findViewById(R.id.send_image_view)
         val sendImageTime: TextView = itemView.findViewById(R.id.send_image_time)
         val sendUserName: TextView = itemView.findViewById(R.id.send_user_name)
+        val senderProfileImageView: ImageView = itemView.findViewById(R.id.senderProfileImageView)
 
         fun bind(fileUrls: List<String>) {
             sendImageView.setOnClickListener {
@@ -168,6 +190,7 @@ class MessageAdapter(
         val receiveImageView: ImageView = itemView.findViewById(R.id.receive_image_view)
         val receiveImageTime: TextView = itemView.findViewById(R.id.receive_image_time)
         val receiveUserName: TextView = itemView.findViewById(R.id.receive_user_name)
+        val receiverProfileImageView: ImageView = itemView.findViewById(R.id.receiverProfileImageView)
 
         fun bind(fileUrls: List<String>) {
             receiveImageView.setOnClickListener {
@@ -184,10 +207,12 @@ class MessageAdapter(
         val sendFileIconView: ImageView = itemView.findViewById(R.id.send_file_icon_view)
         val sendFileTime: TextView = itemView.findViewById(R.id.send_file_time)
         val sendUserName: TextView = itemView.findViewById(R.id.send_user_name)
+        val senderProfileImageView: ImageView = itemView.findViewById(R.id.senderProfileImageView)
     }
     class ReceiveFileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val receiveFileIconView: ImageView = itemView.findViewById(R.id.receive_file_icon_view)
         val receiveFileTime: TextView = itemView.findViewById(R.id.receive_file_time)
         val receiveUserName: TextView = itemView.findViewById(R.id.receive_user_name)
+        val receiverProfileImageView: ImageView = itemView.findViewById(R.id.receiverProfileImageView)
     }
 }

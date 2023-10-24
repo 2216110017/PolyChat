@@ -17,6 +17,9 @@
         android:theme="@style/Theme.PolyChat"
         tools:targetApi="34">
         <activity
+            android:name=".ProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".ZoomedImageActivity"
             android:exported="false" />
         <activity
