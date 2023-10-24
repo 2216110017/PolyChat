@@ -29,13 +29,11 @@ val Context.dataStore by preferencesDataStore(name = "user_info")
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var binding: ActivityMainBinding
-    lateinit var adapter: UserAdapter
-
+    private lateinit var binding: ActivityMainBinding
     private lateinit var mDbRef: DatabaseReference
     private lateinit var loggedInUser: User
-
     private lateinit var userList: ArrayList<User>
+    lateinit var adapter: UserAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

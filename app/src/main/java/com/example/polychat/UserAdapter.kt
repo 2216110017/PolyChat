@@ -2,6 +2,7 @@ package com.example.polychat
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,11 +34,10 @@ class UserAdapter(private val context: Context, private val userList: ArrayList<
         val currentUser = userList[position]
         //화면에 데이터 보여주기
         holder.nameText.text = currentUser.stuName
-
         // 프로필 사진 설정
-        if (currentUser.profileImageUrl != null) {
+        if (currentUser.profile?.url != null) {
             Glide.with(context)
-                .load(currentUser.profileImageUrl)
+                .load(currentUser.profile?.url)
                 .error(R.drawable.default_profile)
                 .into(holder.profileImage)
         } else {

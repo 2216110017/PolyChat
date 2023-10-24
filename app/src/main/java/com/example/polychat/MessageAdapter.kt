@@ -3,6 +3,7 @@ package com.example.polychat
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,11 +11,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 
+@GlideModule
 class MessageAdapter(
     private val context: Context,
     private val messageList: ArrayList<Message>,
@@ -70,6 +73,7 @@ class MessageAdapter(
             .fitCenter()
 
         val currentMessage = messageList[position]
+
         when (holder) {
             is SendViewHolder -> {
                 holder.sendMessage.text = currentMessage.message
@@ -80,7 +84,6 @@ class MessageAdapter(
                     .error(R.drawable.default_profile)
                     .into(holder.senderProfileImageView)
             }
-
             is ReceiveViewHolder -> {
                 holder.receiveMessage.text = currentMessage.message
                 holder.receiveTime.text = currentMessage.sentTime
@@ -90,11 +93,14 @@ class MessageAdapter(
                     .error(R.drawable.default_profile)
                     .into(holder.receiverProfileImageView)
             }
+
+
             is SendImageViewHolder -> {
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
                     .error(R.drawable.default_profile)
                     .into(holder.senderProfileImageView)
+
                 val fileUrls = currentMessage.fileUrls
                 if (!fileUrls.isNullOrEmpty()) {
                     Glide.with(context)
@@ -112,6 +118,7 @@ class MessageAdapter(
                     .load(currentMessage.userProfile?.url)
                     .error(R.drawable.default_profile)
                     .into(holder.receiverProfileImageView)
+
                 val fileUrls = currentMessage.fileUrls
                 if (!fileUrls.isNullOrEmpty()) {
                     Glide.with(context)
@@ -125,6 +132,7 @@ class MessageAdapter(
                 }
             }
 
+
             is SendFileViewHolder -> {
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
@@ -134,6 +142,7 @@ class MessageAdapter(
                 holder.sendFileTime.text = currentMessage.sentTime
                 holder.sendUserName.text = currentMessage.userName
             }
+
             is ReceiveFileViewHolder -> {
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
@@ -184,7 +193,7 @@ class MessageAdapter(
             sendImageView.setOnClickListener {
                 if (fileUrls.isNotEmpty()) {
                     val intent = Intent(itemView.context, ZoomedImageActivity::class.java)
-                    intent.putExtra("IMAGE_URL", fileUrls[0])
+                    intent.putExtra("FILE_URL", fileUrls[0])
                     itemView.context.startActivity(intent)
                 }
             }
@@ -201,7 +210,7 @@ class MessageAdapter(
             receiveImageView.setOnClickListener {
                 if (fileUrls.isNotEmpty()) {
                     val intent = Intent(itemView.context, ZoomedImageActivity::class.java)
-                    intent.putExtra("IMAGE_URL", fileUrls[0])
+                    intent.putExtra("FILE_URL", fileUrls[0])
                     itemView.context.startActivity(intent)
                 }
             }

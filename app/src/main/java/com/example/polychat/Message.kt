@@ -23,7 +23,8 @@ data class Message(
     var messageType: String = "text",
     var userProfile: Profile? = null,
     var fileUrl: String? = null,
+    var receiverUid: String? = null
 ) {
-    constructor() : this("", "", "", null, "", null, "text", null, null)
+    constructor() : this("", "", "", null, "", null, "text", null, null, null)
 }
 
