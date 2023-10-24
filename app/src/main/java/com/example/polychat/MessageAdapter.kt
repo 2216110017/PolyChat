@@ -3,7 +3,6 @@ package com.example.polychat
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -78,6 +77,7 @@ class MessageAdapter(
                 holder.sendUserName.text = currentMessage.userName
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
+                    .error(R.drawable.default_profile)
                     .into(holder.senderProfileImageView)
             }
 
@@ -87,11 +87,13 @@ class MessageAdapter(
                 holder.receiveUserName.text = currentMessage.userName
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
+                    .error(R.drawable.default_profile)
                     .into(holder.receiverProfileImageView)
             }
             is SendImageViewHolder -> {
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
+                    .error(R.drawable.default_profile)
                     .into(holder.senderProfileImageView)
                 val fileUrls = currentMessage.fileUrls
                 if (!fileUrls.isNullOrEmpty()) {
@@ -108,6 +110,7 @@ class MessageAdapter(
             is ReceiveImageViewHolder -> {
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
+                    .error(R.drawable.default_profile)
                     .into(holder.receiverProfileImageView)
                 val fileUrls = currentMessage.fileUrls
                 if (!fileUrls.isNullOrEmpty()) {
@@ -125,6 +128,7 @@ class MessageAdapter(
             is SendFileViewHolder -> {
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
+                    .error(R.drawable.default_profile)
                     .into(holder.senderProfileImageView)
                 holder.sendFileIconView.setImageResource(R.drawable.baseline_insert_drive_file_24)
                 holder.sendFileTime.text = currentMessage.sentTime
@@ -133,6 +137,7 @@ class MessageAdapter(
             is ReceiveFileViewHolder -> {
                 Glide.with(context)
                     .load(currentMessage.userProfile?.url)
+                    .error(R.drawable.default_profile)
                     .into(holder.receiverProfileImageView)
                 holder.receiveFileIconView.setImageResource(R.drawable.baseline_insert_drive_file_24)
                 holder.receiveFileTime.text = currentMessage.sentTime

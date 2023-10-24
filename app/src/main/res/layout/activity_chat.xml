@@ -17,18 +17,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/Chat_textView_topName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginLeft="15dp"
-            android:layout_marginBottom="5dp"
-            android:fontFamily="sans-serif"
-            android:text="친구이름"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:titleTextColor="@android:color/white"/>
+
+
     </LinearLayout>
 
     <!-- 대화 내용 -->

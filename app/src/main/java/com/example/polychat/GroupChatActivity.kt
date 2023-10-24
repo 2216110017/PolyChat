@@ -40,6 +40,7 @@ class GroupChatActivity : AppCompatActivity() {
     private lateinit var groupSenderRoom: String
     private lateinit var loggedInUser: User
     private lateinit var messageList: ArrayList<Message>
+    private lateinit var departmentName: String
     private var isUserInitialized = false // loggedInUser가 초기화되었는지 확인하는 변수
     private val REQUEST_CODE_FILE_PICKER = 1001
 
@@ -95,6 +96,7 @@ class GroupChatActivity : AppCompatActivity() {
         groupSenderRoom = loggedInUser.department
         messageList = ArrayList()
 
+
         val messageAdapter = MessageAdapter(this, messageList, loggedInUser.uId)
         // Firebase 사용자 정보 노드 참조
         val userRef = FirebaseDatabase.getInstance().reference.child("user")
@@ -102,12 +104,14 @@ class GroupChatActivity : AppCompatActivity() {
         binding.chatRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.chatRecyclerView.adapter = messageAdapter
 
-        receiverName = intent.getStringExtra("name").toString()
+        receiverName = intent.getStringExtra("stuName").toString()
         receiverUid = intent.getStringExtra("uId").toString()
+        departmentName = intent.getStringExtra("department") ?: ""
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.title = departmentName
+
 
         mDbRef = FirebaseDatabase.getInstance().reference
-
-        supportActionBar?.title = receiverName
 
         //메시지 전송 버튼 이벤트
         binding.sendBtn.setOnClickListener {

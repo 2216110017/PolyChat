@@ -21,8 +21,9 @@ data class Message(
     var fullDate: String? = currentFullDate,
     var fileUrls: List<String>? = null,
     var messageType: String = "text",
-    var userProfile: Profile? = null
+    var userProfile: Profile? = null,
+    var fileUrl: String? = null,
 ) {
-    constructor() : this("", "", "", null, "", null, "text", null)
+    constructor() : this("", "", "", null, "", null, "text", null, null)
 }
 

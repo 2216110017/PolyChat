@@ -1,10 +1,14 @@
 package com.example.polychat
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
@@ -29,6 +33,17 @@ class NewActivity : AppCompatActivity() {
         }
     }
 
+    private val updateProfileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val profileImageUrl = result.data?.getStringExtra("profileImageUrl")
+            if (profileImageUrl != null) {
+                Glide.with(this@NewActivity)
+                    .load(profileImageUrl)
+                    .into(binding.profileImage)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNewBinding.inflate(layoutInflater)
@@ -38,7 +53,9 @@ class NewActivity : AppCompatActivity() {
         if (uId != null) {
             loadProfile(uId)
         } else {
-            // uId가 없는 경우, 오류 처리
+            Toast.makeText(this, "오류가 발생했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
 
 
@@ -65,7 +82,7 @@ class NewActivity : AppCompatActivity() {
             intent.putExtra("stuNum", stuNum)
             intent.putExtra("department", department)
             intent.putExtra("uId", uId)
-            startActivity(intent)
+            updateProfileLauncher.launch(intent)
         }
 
         binding.boardButton.setOnClickListener {
@@ -90,8 +107,10 @@ class NewActivity : AppCompatActivity() {
     }
 
     private fun loadProfile(uId: String) {
+        Log.d("NewActivity", "Loading profile for user: $uId")
         firebaseDatabase.reference.child("user").child(uId).child("profile").get().addOnSuccessListener { snapshot ->
             val profile = snapshot.getValue(Profile::class.java)
+            Log.d("NewActivity", "Profile loaded: $profile")
             if (profile?.url != null) {
                 Glide.with(this@NewActivity)
                     .load(profile.url)
@@ -102,8 +121,11 @@ class NewActivity : AppCompatActivity() {
             }
         }.addOnFailureListener { exception ->
             // 프로필 정보 불러오기 실패 시, 오류 처리
+            Log.e("NewActivity", "Failed to load profile", exception)
+            Toast.makeText(this@NewActivity, "프로필 정보 불러오기 실패: ${exception.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)

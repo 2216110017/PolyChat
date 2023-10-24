@@ -83,22 +83,6 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("department", loggedInUser.department)  // 학과 정보 전달
             startActivity(intent)
         }
-
-//        mDbRef.child("user").addValueEventListener(object:ValueEventListener{
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                for(postSnapshot in snapshot.children){
-//                    val currentUser = postSnapshot.getValue(User::class.java)
-//                    if(loggedInUser.uId != currentUser?.uId){
-//                        userList.add(currentUser!!)
-//                    }
-//                }
-//                adapter.notifyDataSetChanged()
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                // Handle error
-//            }
-//        })
     }
 
     private fun fetchUsersByDepartment(department: String) {
