@@ -91,16 +91,17 @@ class ChatActivity : AppCompatActivity() {
         binding.chatRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.chatRecyclerView.adapter = messageAdapter
 
-        receiverName = intent.getStringExtra("name").toString()
+        receiverName = intent.getStringExtra("stuName").toString()
         receiverUid = intent.getStringExtra("uId").toString()
 
         mDbRef = FirebaseDatabase.getInstance().reference
-
         val senderUid = loggedInUser.uId
 
         senderRoom = receiverUid + senderUid
         receiverRoom = senderUid + receiverUid
 
+
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.title = receiverName
 
         //메시지 전송 버튼 이벤트

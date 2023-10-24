@@ -33,7 +33,6 @@ class LogInActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLogInBinding
     private lateinit var mDbRef: DatabaseReference
     private lateinit var auth: FirebaseAuth
-    private var customToken: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLogInBinding.inflate(layoutInflater)
@@ -100,37 +99,23 @@ class LogInActivity : AppCompatActivity() {
         auth.signInWithCustomToken(customToken)
             .addOnCompleteListener(this@LogInActivity) { task ->
                 if (task.isSuccessful) {
-                    // 로그인 성공 시 사용자 정보 저장
-                    lifecycleScope.launch {
-                        dataStore.edit { preferences ->
-                            preferences[stringPreferencesKey("stuName")] = validUser.stuName
-                            preferences[stringPreferencesKey("stuNum")] = validUser.stuNum
-                            preferences[stringPreferencesKey("department")] = validUser.department
-                            preferences[stringPreferencesKey("email")] = validUser.email
-                            preferences[stringPreferencesKey("phone")] = validUser.phone
-                            preferences[stringPreferencesKey("uId")] = validUser.uId
-                        }
-                    }
+                    // 로그인 성공
+                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
 
-                    // Firebase에 사용자 정보 저장
-                    mDbRef.child("user").child(validUser.uId).setValue(validUser)
-                        .addOnSuccessListener {
-                            // 데이터 저장 성공
+                    // Firebase Realtime Database에서 사용자의 프로필 정보 불러오기
+                    mDbRef.child("user").child(userId).child("profile").get()
+                        .addOnSuccessListener { snapshot ->
+                            val profile = snapshot.getValue(Profile::class.java)
+                            validUser.profile = profile
+
+                            // 로그인 성공 후 처리 로직
+                            onLoginSuccess(validUser)
                         }
                         .addOnFailureListener { exception ->
-                            // 데이터 저장 실패
-                            Log.e("FirebaseError", "uId 저장 실패: ${exception.message}")
+                            Log.e("LoginActivity", "프로필 정보 불러오기 실패: ${exception.message}")
+                            // 프로필 정보를 불러오지 못했을 때의 처리 로직
+                            onLoginSuccess(validUser)
                         }
-
-                    Log.d("LoginActivity", "User UID: ${validUser.uId}")
-
-                    val intent = Intent(this@LogInActivity, NewActivity::class.java)
-                    intent.putExtra("stuName", validUser.stuName)
-                    intent.putExtra("department", validUser.department)
-                    intent.putExtra("stuNum", validUser.stuNum)
-                    intent.putExtra("uId", validUser.uId)
-                    startActivity(intent)
-                    finish()
                 } else {
                     // 로그인 실패 처리
                     Log.e("LoginActivity", "Firebase auth 에러: ${task.exception?.message}")
@@ -138,6 +123,44 @@ class LogInActivity : AppCompatActivity() {
                 }
             }
     }
+
+    private fun onLoginSuccess(user: User) {
+        // 로그인 성공 시 사용자 정보 저장
+        lifecycleScope.launch {
+            dataStore.edit { preferences ->
+                preferences[stringPreferencesKey("stuName")] = user.stuName
+                preferences[stringPreferencesKey("stuNum")] = user.stuNum
+                preferences[stringPreferencesKey("department")] = user.department
+                preferences[stringPreferencesKey("email")] = user.email
+                preferences[stringPreferencesKey("phone")] = user.phone
+                preferences[stringPreferencesKey("uId")] = user.uId
+                // 프로필 정보 저장
+                preferences[stringPreferencesKey("profile")] = user.profile?.text ?: ""
+                preferences[stringPreferencesKey("profileImageUrl")] = user.profile?.url ?: ""
+            }
+        }
+
+        // Firebase에 사용자 정보 저장
+        mDbRef.child("user").child(user.uId).setValue(user)
+            .addOnSuccessListener {
+                // 데이터 저장 성공
+            }
+            .addOnFailureListener { exception ->
+                // 데이터 저장 실패
+                Log.e("FirebaseError", "uId 저장 실패: ${exception.message}")
+            }
+
+        Log.d("LoginActivity", "User UID: ${user.uId}")
+
+        val intent = Intent(this@LogInActivity, NewActivity::class.java)
+        intent.putExtra("stuName", user.stuName)
+        intent.putExtra("department", user.department)
+        intent.putExtra("stuNum", user.stuNum)
+        intent.putExtra("uId", user.uId)
+        startActivity(intent)
+        finish()
+    }
+
 
     // Retrofit 인터페이스
     interface CustomTokenService {

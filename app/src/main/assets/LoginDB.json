@@ -34,7 +34,7 @@
   {
     "userID": 5,
     "stuNum": "2216111111",
-    "stuName": "아이티1",
+    "stuName": "테스트계정1",
     "department": "IT융합제어과",
     "email": "2216111111@office.kopo.ac.kr",
     "phone": ""
@@ -42,7 +42,7 @@
   {
     "userID": 6,
     "stuNum": "2216222222",
-    "stuName": "아이티2",
+    "stuName": "테스트계정2",
     "department": "IT융합제어과",
     "email": "2216222222@office.kopo.ac.kr",
     "phone": ""
@@ -50,7 +50,7 @@
   {
     "userID": 7,
     "stuNum": "2216333333",
-    "stuName": "아이티3",
+    "stuName": "테스트계정3",
     "department": "IT융합제어과",
     "email": "2216333333@office.kopo.ac.kr",
     "phone": ""
